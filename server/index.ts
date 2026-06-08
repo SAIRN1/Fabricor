@@ -510,23 +510,22 @@ app.delete("/api/schedule/:id", requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: "Failed to delete stop" }); }
 });
 
-app.liimport { fileURLToPath } from "url";
-import { dirname, join } from "path";
-import { existsSync } from "fs";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const distPath = join(__dirname, "../dist/public");
-
-if (existsSync(distPath)) {
-  const serveStatic = (await import("serve-static")).default;
-  app.use(serveStatic(distPath));
-  app.get("*", (_req, res) => {
-    res.sendFile(join(distPath, "index.html"));
-  });
-}sten(PORT, "0.0.0.0", async () => {
+app.listen(PORT, "0.0.0.0", async () => {
   console.log(`Fabricor API running on port ${PORT}`);
   await seedAdmin();
+  const { fileURLToPath } = await import("url");
+  const { dirname, join } = await import("path");
+  const { existsSync } = await import("fs");
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  const distPath = join(__dirname, "../dist/public");
+  if (existsSync(distPath)) {
+    const serveStatic = (await import("serve-static")).default;
+    app.use(serveStatic(distPath));
+    app.get("*", (_req: any, res: any) => {
+      res.sendFile(join(distPath, "index.html"));
+    });
+  }
 });
 
 export default app;
