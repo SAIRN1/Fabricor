@@ -1,15 +1,16 @@
-import { useState, useEffect, createContext, useContext } from "react";
-import { Route, Switch, useLocation, Link } from "wouter";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Mail, useState, useEffect, createContext, useContext } from "react";
+import { Mail, Route, Switch, useLocation, Link } from "wouter";
+import { Mail, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Dashboard from "./pages/Dashboard";
 import Issues from "./pages/Issues";
 import Intelligence from "./pages/Intelligence";
 import Customers from "./pages/Customers";
 import Jobs from "./pages/Jobs";
 import Schedule from "./pages/Schedule";
-import { Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
+import Emails from "./pages/Emails";
+import { Mail, Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
 import Login from "./pages/Login";
-import {
+import { Mail,
   LayoutDashboard, AlertTriangle, Users, TrendingUp,
   BookOpen, Brain, Settings as SettingsIcon, LogOut,
   ChevronRight, Activity, Zap, Briefcase, Calendar
@@ -52,6 +53,7 @@ function AppContent() {
     { href: "/customers", icon: Users, label: "Customers", desc: "Customer database" },
     { href: "/jobs", icon: Briefcase, label: "Jobs", desc: "Job pipeline" },
     { href: "/schedule", icon: Calendar, label: "Schedule", desc: "Route & scheduling" },
+    { href: "/emails", icon: Mail, label: "Emails", desc: "AI email generator" },
     { href: "/resources", icon: Users, label: "Resources", desc: "Team productivity" },
     { href: "/sales", icon: TrendingUp, label: "Sales", desc: "Rep performance" },
     { href: "/pricebook", icon: BookOpen, label: "Price Book", desc: "Pricing & costs" },
@@ -142,6 +144,7 @@ function AppContent() {
           <Route path="/customers" component={Customers} />
           <Route path="/jobs" component={Jobs} />
           <Route path="/schedule" component={Schedule} />
+          <Route path="/emails" component={Emails} />
           <Route path="/resources" component={Resources} />
           <Route path="/sales" component={Sales} />
           <Route path="/pricebook" component={PriceBook} />

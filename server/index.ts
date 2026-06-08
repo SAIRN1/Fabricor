@@ -491,3 +491,56 @@ app.listen(PORT, "0.0.0.0", async () => {
 });
 
 export default app;
+app.get("/api/emails", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const allEmails = await db.select().from(aiEmails).where(eq(aiEmails.userId, userId)).orderBy(desc(aiEmails.createdAt));
+    res.json(allEmails);
+  } catch (e) { res.json([]); }
+});
+
+app.post("/api/emails", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const [email] = await db.insert(aiEmails).values({ ...req.body, userId }).returning();
+    res.json(email);
+  } catch (e) { res.status(500).json({ error: "Failed to save email" }); }
+});
+
+app.delete("/api/emails/:id", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    await db.delete(aiEmails).where(and(eq(aiEmails.id, req.params.id), eq(aiEmails.userId, userId)));
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: "Failed to delete email" }); }
+});
+
+app.post("/api/claude/generate-email", requireAuth, async (req, res) => {
+  try {
+    const { emailType, customerName, jobName, scheduledDate, stoneType, areas, salesRep, shopName, customPrompt } = req.body;
+    const prompts: Record<string, string> = {
+      template_confirmation: `Write a professional but warm email confirming a stone countertop template appointment. Shop: ${shopName || "our shop"}. Customer: ${customerName}. Job: ${jobName}. Date: ${scheduledDate}. Stone: ${stoneType}. Areas: ${areas}. Rep: ${salesRep}. Include what to expect during the template, how long it takes, and ask them to have the space cleared. Sign off warmly.`,
+      installation_confirmation: `Write a professional but warm email confirming a stone countertop installation. Shop: ${shopName || "our shop"}. Customer: ${customerName}. Job: ${jobName}. Date: ${scheduledDate}. Stone: ${stoneType}. Areas: ${areas}. Include what to expect, how long it takes, plumbing reconnect info, and care instructions after install. Sign off warmly.`,
+      completion_followup: `Write a warm thank you email after completing a stone countertop installation. Shop: ${shopName || "our shop"}. Customer: ${customerName}. Job: ${jobName}. Stone: ${stoneType}. Areas: ${areas}. Include care and maintenance tips for their specific stone, invite them to reach out with questions, and ask for a Google review. Keep it genuine and warm.`,
+      dispute_letter: `Write a professional dispute resolution email for a stone fabrication shop. Shop: ${shopName || "our shop"}. Customer: ${customerName}. Job: ${jobName}. Be empathetic, take responsibility where appropriate, outline what steps will be taken to resolve the issue, and provide a clear timeline. Keep it professional but human.`,
+      estimate: `Write a formal estimate email for a stone countertop project. Shop: ${shopName || "our shop"}. Customer: ${customerName}. Job: ${jobName}. Stone: ${stoneType}. Areas: ${areas}. Rep: ${salesRep}. Include a professional summary of the project scope, note that the estimate is valid for 30 days, outline next steps, and invite questions.`,
+      custom: customPrompt || "Write a professional email for a stone fabrication shop.",
+    };
+    const prompt = prompts[emailType] || prompts.custom;
+    const response = await fetch("https://sairn.vercel.app/api/claude", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514", max_tokens: 800,
+        system: "You are an expert email writer for a stone fabrication shop. Write emails that are professional but warm — like a family business with 30 years of experience. Always include a subject line at the very start formatted as 'Subject: [subject here]' followed by a blank line, then the email body. Never use generic corporate language. Be specific and human.",
+        messages: [{ role: "user", content: prompt }]
+      }),
+    });
+    const data = await response.json();
+    const text = data.content?.[0]?.text || "";
+    const lines = text.split("\n");
+    const subjectLine = lines.find((l: string) => l.startsWith("Subject:")) || "Subject: Regarding Your Project";
+    const subject = subjectLine.replace("Subject:", "").trim();
+    const body = lines.slice(lines.indexOf(subjectLine) + 2).join("\n").trim();
+    res.json({ subject, body });
+  } catch (e) { res.status(500).json({ error: "Email generation failed" }); }
+});
