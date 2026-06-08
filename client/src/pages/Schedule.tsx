@@ -24,9 +24,9 @@ export default function Schedule() {
 
   const { data: stops = [] } = useQuery({
     queryKey: ["/api/schedule", selectedDate],
-    queryFn: async () => {
+queryFn: async () => {
       try {
-        const r = await fetch(`/api/schedule?date=${selectedDate}`, { credentials: "include" });
+        const r = await fetch(`/api/schedule`, { credentials: "include" });
         if (!r.ok) return [];
         return r.json();
       } catch { return []; }
