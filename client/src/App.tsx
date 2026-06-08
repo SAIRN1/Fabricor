@@ -4,12 +4,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Dashboard from "./pages/Dashboard";
 import Issues from "./pages/Issues";
 import Intelligence from "./pages/Intelligence";
+import Customers from "./pages/Customers";
 import { Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
 import Login from "./pages/Login";
 import {
   LayoutDashboard, AlertTriangle, Users, TrendingUp,
   BookOpen, Brain, Settings as SettingsIcon, LogOut,
-  ChevronRight, Activity, Zap
+  ChevronRight, Activity, Zap, Briefcase, Calendar
 } from "lucide-react";
 
 const queryClient = new QueryClient({
@@ -46,6 +47,9 @@ function AppContent() {
   const nav = [
     { href: "/", icon: LayoutDashboard, label: "Dashboard", desc: "Shop overview" },
     { href: "/issues", icon: AlertTriangle, label: "Issues", desc: "Quality tracker" },
+    { href: "/customers", icon: Users, label: "Customers", desc: "Customer database" },
+    { href: "/jobs", icon: Briefcase, label: "Jobs", desc: "Job pipeline" },
+    { href: "/schedule", icon: Calendar, label: "Schedule", desc: "Route & scheduling" },
     { href: "/resources", icon: Users, label: "Resources", desc: "Team productivity" },
     { href: "/sales", icon: TrendingUp, label: "Sales", desc: "Rep performance" },
     { href: "/pricebook", icon: BookOpen, label: "Price Book", desc: "Pricing & costs" },
@@ -133,6 +137,7 @@ function AppContent() {
         <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/issues" component={Issues} />
+          <Route path="/customers" component={Customers} />
           <Route path="/resources" component={Resources} />
           <Route path="/sales" component={Sales} />
           <Route path="/pricebook" component={PriceBook} />

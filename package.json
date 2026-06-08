@@ -9,6 +9,7 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@googlemaps/js-api-loader": "^2.1.0",
     "@tanstack/react-query": "^5.40.0",
     "bcryptjs": "^2.4.3",
     "connect-pg-simple": "^9.0.1",

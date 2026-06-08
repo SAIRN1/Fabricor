@@ -188,3 +188,159 @@ export type PriceBookItem = typeof priceBookItems.$inferSelect;
 export type CostSettings = typeof costSettings.$inferSelect;
 export type IndustryBenchmark = typeof industryBenchmarks.$inferSelect;
 export type ClaudeConversation = typeof claudeConversations.$inferSelect;
+
+// ── CUSTOMERS ──────────────────────────────────────────────────────────────
+export const customerTypeEnum = pgEnum("customer_type", ["retail", "contractor", "builder", "designer", "commercial"]);
+
+export const customers = pgTable("customers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email"),
+  phone: text("phone"),
+  address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  zip: text("zip"),
+  customerType: customerTypeEnum("customer_type").notNull().default("retail"),
+  company: text("company"),
+  notes: text("notes"),
+  totalJobs: integer("total_jobs").default(0),
+  totalRevenue: real("total_revenue").default(0),
+  praiseCount: integer("praise_count").default(0),
+  complaintCount: integer("complaint_count").default(0),
+  claudeSummary: text("claude_summary"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// ── JOB STAGES ─────────────────────────────────────────────────────────────
+export const jobStageEnum = pgEnum("job_stage", [
+  "inquiry", "estimate", "stone_selected", "template_scheduled",
+  "template_complete", "layout", "fabrication", "installation", "complete"
+]);
+
+// ── JOBS ───────────────────────────────────────────────────────────────────
+export const jobs = pgTable("jobs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id),
+  jobNumber: text("job_number").notNull(),
+  customerId: uuid("customer_id").references(() => customers.id),
+  stage: jobStageEnum("stage").notNull().default("inquiry"),
+  jobName: text("job_name").notNull(),
+  jobAddress: text("job_address"),
+  jobCity: text("job_city"),
+  jobState: text("job_state"),
+  jobZip: text("job_zip"),
+  jobType: text("job_type"),
+  areas: text("areas"),
+  stoneType: text("stone_type"),
+  stoneColor: text("stone_color"),
+  stoneSupplier: text("stone_supplier"),
+  totalSqft: real("total_sqft"),
+  estimatedRevenue: real("estimated_revenue"),
+  actualRevenue: real("actual_revenue"),
+  materialCost: real("material_cost"),
+  salesRepId: text("sales_rep"),
+  templateDate: timestamp("template_date"),
+  templateTech: text("template_tech"),
+  fabricationDate: timestamp("fabrication_date"),
+  fabricationTech: text("fabrication_tech"),
+  installDate: timestamp("install_date"),
+  installTech: text("install_tech"),
+  completionDate: timestamp("completion_date"),
+  estimatedTime: real("estimated_time"),
+  actualTime: real("actual_time"),
+  onTime: boolean("on_time"),
+  clientSignOff: boolean("client_sign_off").default(false),
+  notes: text("notes"),
+  claudeBriefing: text("claude_briefing"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// ── JOB PHASES ─────────────────────────────────────────────────────────────
+export const jobPhases = pgTable("job_phases", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  jobId: uuid("job_id").references(() => jobs.id),
+  phaseNumber: integer("phase_number").notNull(),
+  phaseName: text("phase_name"),
+  areas: text("areas"),
+  sqft: real("sqft"),
+  materialCost: real("material_cost"),
+  salePrice: real("sale_price"),
+  scheduledDate: timestamp("scheduled_date"),
+  completedDate: timestamp("completed_date"),
+  tech: text("tech"),
+  onTime: boolean("on_time"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ── JOB FEEDBACK ───────────────────────────────────────────────────────────
+export const feedbackTypeEnum = pgEnum("feedback_type", ["praise", "complaint", "note"]);
+
+export const jobFeedback = pgTable("job_feedback", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  jobId: uuid("job_id").references(() => jobs.id),
+  customerId: uuid("customer_id").references(() => customers.id),
+  userId: uuid("user_id").references(() => users.id),
+  feedbackType: feedbackTypeEnum("feedback_type").notNull(),
+  category: text("category"),
+  description: text("description").notNull(),
+  employee: text("employee"),
+  resolved: boolean("resolved").default(false),
+  resolution: text("resolution"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ── SCHEDULE STOPS ─────────────────────────────────────────────────────────
+export const stopTypeEnum = pgEnum("stop_type", ["template", "installation", "delivery", "service"]);
+
+export const scheduleStops = pgTable("schedule_stops", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id),
+  jobId: uuid("job_id").references(() => jobs.id),
+  customerId: uuid("customer_id").references(() => customers.id),
+  stopType: stopTypeEnum("stop_type").notNull(),
+  scheduledDate: timestamp("scheduled_date").notNull(),
+  address: text("address").notNull(),
+  city: text("city"),
+  state: text("state"),
+  zip: text("zip"),
+  lat: real("lat"),
+  lng: real("lng"),
+  tech: text("tech"),
+  estimatedDuration: integer("estimated_duration").default(60),
+  stopOrder: integer("stop_order").default(0),
+  completed: boolean("completed").default(false),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ── AI EMAILS ──────────────────────────────────────────────────────────────
+export const emailTypeEnum = pgEnum("email_type", [
+  "template_confirmation", "installation_confirmation",
+  "completion_followup", "dispute_letter", "estimate", "custom"
+]);
+
+export const aiEmails = pgTable("ai_emails", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id),
+  jobId: uuid("job_id").references(() => jobs.id),
+  customerId: uuid("customer_id").references(() => customers.id),
+  emailType: emailTypeEnum("email_type").notNull(),
+  subject: text("subject"),
+  body: text("body").notNull(),
+  sent: boolean("sent").default(false),
+  sentAt: timestamp("sent_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type Customer = typeof customers.$inferSelect;
+export type Job = typeof jobs.$inferSelect;
+export type JobPhase = typeof jobPhases.$inferSelect;
+export type JobFeedback = typeof jobFeedback.$inferSelect;
+export type ScheduleStop = typeof scheduleStops.$inferSelect;
+export type AiEmail = typeof aiEmails.$inferSelect;
