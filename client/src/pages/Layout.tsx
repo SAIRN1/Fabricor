@@ -273,7 +273,7 @@ export default function Layout() {
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button === 1 || (e.button === 0 && e.altKey)) { setIsPanning(true); }
+    if (tool === "select" || e.button === 1 || (e.button === 0 && e.altKey)) { setIsPanning(true); }
   };
 
   const handleMouseUp = () => setIsPanning(false);
