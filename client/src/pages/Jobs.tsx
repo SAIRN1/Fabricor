@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, X, Briefcase, ChevronRight, PenLine } from "lucide-react";
-import SignatureCapture from "./../components/SignatureCapture";
+import SignatureModal from "./../components/SignatureModal";
 
 const STAGES = [
   { key: "inquiry", label: "Inquiry", color: "border-zinc-600 text-zinc-400" },
@@ -234,10 +234,10 @@ export default function Jobs() {
       </div>
 
       {showSig && selected && (
-        <SignatureCapture
+        <SignatureModal
           jobName={selected.jobName}
           customerName={selected.jobAddress || "Customer"}
-          onSave={(sig) => { console.log("Signature saved", sig.length); setShowSig(false); alert("Signature captured and saved!"); }}
+          onSave={(stage, sig) => { setShowSig(false); alert(`✓ ${stage} sign-off saved!`); }}
           onClose={() => setShowSig(false)}
         />
       )}
