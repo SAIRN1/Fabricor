@@ -5,6 +5,9 @@ import bcrypt from "bcryptjs";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { eq, and, desc, sql } from "drizzle-orm";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+import { existsSync } from "fs";
 import {
   users, sessions, issues, weeklyReports, resourceActivities,
   salesEntries, priceBookItems, costSettings, industryBenchmarks,
@@ -46,10 +49,7 @@ async function seedAdmin() {
     const existing = await db.select().from(users).where(eq(users.email, adminEmail)).limit(1);
     if (existing.length === 0) {
       const hash = await bcrypt.hash(adminPass, 12);
-      await db.insert(users).values({
-        email: adminEmail, password: hash, name: "Admin",
-        role: "admin", plan: "enterprise", shopName: "SAIRN Demo Shop",
-      });
+      await db.insert(users).values({ email: adminEmail, password: hash, name: "Admin", role: "admin", plan: "enterprise", shopName: "SAIRN Demo Shop" });
       console.log("Admin seeded:", adminEmail);
     }
     const adminUser = await db.select().from(users).where(eq(users.email, adminEmail)).limit(1);
@@ -67,9 +67,7 @@ async function seedAdmin() {
         { metric: "avg_job_value", category: "sales", p25: 1800, p50: 2600, p75: 3800, p90: 5500, unit: "$" },
       ]);
     }
-  } catch (e) {
-    console.log("Seed skipped:", (e as Error).message);
-  }
+  } catch (e) { console.log("Seed skipped:", (e as Error).message); }
 }
 
 app.post("/api/auth/login", async (req, res) => {
@@ -90,18 +88,14 @@ app.post("/api/auth/register", async (req, res) => {
     const existing = await db.select().from(users).where(eq(users.email, email.toLowerCase())).limit(1);
     if (existing.length > 0) return res.status(400).json({ error: "Email already registered" });
     const hash = await bcrypt.hash(password, 12);
-    const [user] = await db.insert(users).values({
-      email: email.toLowerCase(), password: hash, name, shopName, role: "admin", plan: "starter",
-    }).returning();
+    const [user] = await db.insert(users).values({ email: email.toLowerCase(), password: hash, name, shopName, role: "admin", plan: "starter" }).returning();
     await db.insert(costSettings).values({ userId: user.id });
     (req.session as any).userId = user.id;
     res.json({ user: { id: user.id, email: user.email, name: user.name, role: user.role, plan: user.plan, shopName: user.shopName } });
   } catch (e) { res.status(500).json({ error: "Registration failed" }); }
 });
 
-app.post("/api/auth/logout", (req, res) => {
-  req.session.destroy(() => res.json({ ok: true }));
-});
+app.post("/api/auth/logout", (req, res) => { req.session.destroy(() => res.json({ ok: true })); });
 
 app.get("/api/auth/me", async (req, res) => {
   const userId = (req.session as any)?.userId;
@@ -303,26 +297,15 @@ app.post("/api/claude/chat", requireAuth, async (req, res) => {
       const totalImpact = recentIssues.reduce((s, i) => s + (i.totalImpact || 0), 0);
       const remakeCount = recentIssues.filter(i => i.issueType === "remake").length;
       const topRootCauses = recentIssues.reduce((acc: Record<string, number>, i) => { acc[i.rootCause] = (acc[i.rootCause] || 0) + 1; return acc; }, {});
-      shopContext = `SHOP CONTEXT FOR ${user?.shopName || "This Shop"} (Week ${week}, ${year}):
-- Recent issues (last 20): ${recentIssues.length} total, ${remakeCount} remakes
-- Total financial impact: $${totalImpact.toFixed(0)}
-- Top root causes: ${Object.entries(topRootCauses).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => `${k}(${v})`).join(", ")}
-- Labor cost: $${settings?.laborCostPerHour || 66}/hr | Opportunity cost: $${settings?.opportunityCostPerHour || 250}/hr`;
+      shopContext = `SHOP CONTEXT FOR ${user?.shopName || "This Shop"} (Week ${week}, ${year}):\n- Recent issues: ${recentIssues.length} total, ${remakeCount} remakes\n- Total impact: $${totalImpact.toFixed(0)}\n- Top root causes: ${Object.entries(topRootCauses).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => `${k}(${v})`).join(", ")}\n- Labor: $${settings?.laborCostPerHour || 66}/hr`;
     }
-    const systemPrompt = `You are Fabricor's AI intelligence layer — a stone fabrication business analyst embedded directly in the shop's operations platform.
-
-${shopContext}
-
-You are a specialist who deeply understands stone fabrication workflows, quality cost accounting, resource productivity, sales performance, and industry benchmarks. Speak like a trusted advisor. Be direct, specific, and actionable. Reference actual numbers from the shop context when relevant. Never give generic advice when you have real data to work with.`;
-
+    const systemPrompt = `You are Fabricor's AI intelligence layer — a stone fabrication business analyst.\n\n${shopContext}\n\nBe direct, specific, and actionable.`;
     const response = await fetch("https://sairn.vercel.app/api/claude", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1500, system: systemPrompt, messages }),
     });
     const data = await response.json();
-    const content = data.content?.[0]?.text || "I couldn't generate a response. Please try again.";
-    res.json({ content, usage: data.usage });
+    res.json({ content: data.content?.[0]?.text || "Try again.", usage: data.usage });
   } catch (e) { res.status(500).json({ error: "Claude AI request failed" }); }
 });
 
@@ -331,19 +314,13 @@ app.post("/api/claude/analyze-issues", requireAuth, async (req, res) => {
     const userId = (req.session as any).userId;
     const { week, year } = getWeekNumber(new Date());
     const weekIssues = await db.select().from(issues).where(and(eq(issues.userId, userId), eq(issues.weekNumber, week), eq(issues.year, year)));
-    if (weekIssues.length === 0) return res.json({ analysis: "No issues logged this week. Keep it up — a clean week is a profitable week." });
+    if (weekIssues.length === 0) return res.json({ analysis: "No issues logged this week." });
     const totalImpact = weekIssues.reduce((s, i) => s + (i.totalImpact || 0), 0);
     const byType = weekIssues.reduce((acc: Record<string, number>, i) => { acc[i.issueType] = (acc[i.issueType] || 0) + 1; return acc; }, {});
     const byRootCause = weekIssues.reduce((acc: Record<string, number>, i) => { acc[i.rootCause] = (acc[i.rootCause] || 0) + 1; return acc; }, {});
-    const prompt = `Analyze this week's quality issues for a stone fabrication shop:
-Week ${week}, ${year}: ${weekIssues.length} total issues, $${totalImpact.toFixed(0)} total impact
-By type: ${JSON.stringify(byType)}
-By root cause: ${JSON.stringify(byRootCause)}
-
-Provide a concise analysis (3-4 sentences): name the biggest cost driver, identify the pattern, give one specific actionable recommendation. Be direct. Use real numbers.`;
+    const prompt = `Analyze week ${week} ${year}: ${weekIssues.length} issues, $${totalImpact.toFixed(0)} impact. By type: ${JSON.stringify(byType)}. By cause: ${JSON.stringify(byRootCause)}. Give 3-4 sentence analysis with actionable recommendation.`;
     const response = await fetch("https://sairn.vercel.app/api/claude", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 400, messages: [{ role: "user", content: prompt }] }),
     });
     const data = await response.json();
@@ -383,25 +360,9 @@ app.post("/api/claude/customer-briefing", requireAuth, async (req, res) => {
     if (!customer) return res.status(404).json({ error: "Customer not found" });
     const customerJobs = await db.select().from(jobs).where(and(eq(jobs.customerId, customerId), eq(jobs.userId, userId))).orderBy(desc(jobs.createdAt)).limit(20);
     const feedback = await db.select().from(jobFeedback).where(eq(jobFeedback.customerId, customerId)).orderBy(desc(jobFeedback.createdAt)).limit(10);
-    const prompt = `Generate a pre-job briefing for this stone fabrication customer:
-
-Customer: ${customer.firstName} ${customer.lastName}
-Type: ${customer.customerType}
-Company: ${customer.company || "N/A"}
-Total Jobs: ${customer.totalJobs || 0}
-Total Revenue: $${customer.totalRevenue || 0}
-Praise Count: ${customer.praiseCount || 0}
-Complaint Count: ${customer.complaintCount || 0}
-Notes: ${customer.notes || "None"}
-
-Recent Jobs: ${customerJobs.length > 0 ? customerJobs.map(j => `${j.jobName} (${j.stage}) - $${j.estimatedRevenue || 0}`).join(", ") : "No jobs yet"}
-Feedback History: ${feedback.length > 0 ? feedback.map(f => `${f.feedbackType}: ${f.description}`).join("; ") : "No feedback yet"}
-
-Provide a concise 3-4 sentence briefing covering: customer history, any patterns or issues to watch for, preferences, and recommendations for the next job.`;
-
+    const prompt = `Stone fabrication pre-job briefing for ${customer.firstName} ${customer.lastName} (${customer.customerType}${customer.company ? `, ${customer.company}` : ""}). Jobs: ${customer.totalJobs || 0}, Revenue: $${customer.totalRevenue || 0}, Praise: ${customer.praiseCount || 0}, Complaints: ${customer.complaintCount || 0}. Notes: ${customer.notes || "None"}. Recent jobs: ${customerJobs.map(j => `${j.jobName}(${j.stage})`).join(", ") || "None"}. Feedback: ${feedback.map(f => `${f.feedbackType}: ${f.description}`).join("; ") || "None"}. Give 3-4 sentence briefing with specific recommendations.`;
     const response = await fetch("https://sairn.vercel.app/api/claude", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 500, messages: [{ role: "user", content: prompt }] }),
     });
     const data = await response.json();
@@ -467,9 +428,12 @@ app.post("/api/jobs/:id/feedback", requireAuth, async (req, res) => {
 app.get("/api/schedule", requireAuth, async (req, res) => {
   try {
     const userId = (req.session as any).userId;
-    const allStops = await db.select().from(scheduleStops).where(eq(scheduleStops.userId, userId)).orderBy(scheduleStops.stopOrder, scheduleStops.scheduledDate);
+    const allStops = await db.select().from(scheduleStops).where(eq(scheduleStops.userId, userId)).orderBy(desc(scheduleStops.scheduledDate));
     res.json(allStops);
-  } catch (e) { res.status(500).json({ error: "Failed to fetch schedule" }); }
+  } catch (e) {
+    console.error("Schedule error:", e);
+    res.json([]);
+  }
 });
 
 app.post("/api/schedule", requireAuth, async (req, res) => {
@@ -510,22 +474,20 @@ app.delete("/api/schedule/:id", requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: "Failed to delete stop" }); }
 });
 
+const __filename2 = fileURLToPath(import.meta.url);
+const __dirname2 = dirname(__filename2);
+const distPath = join(__dirname2, "../dist/public");
+s
+  const { default: serveStatic } = await import("serve-static");
+  app.use(serveStatic(distPath));
+  app.get("*", (_req: any, res: any) => {
+    res.sendFile(join(distPath, "index.html"));
+  });
+}
+
 app.listen(PORT, "0.0.0.0", async () => {
   console.log(`Fabricor API running on port ${PORT}`);
   await seedAdmin();
-  const { fileURLToPath } = await import("url");
-  const { dirname, join } = await import("path");
-  const { existsSync } = await import("fs");
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = dirname(__filename);
-  const distPath = join(__dirname, "../dist/public");
-  if (existsSync(distPath)) {
-    const serveStatic = (await import("serve-static")).default;
-    app.use(serveStatic(distPath));
-    app.get("*", (_req: any, res: any) => {
-      res.sendFile(join(distPath, "index.html"));
-    });
-  }
 });
 
 export default app;
