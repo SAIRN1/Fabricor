@@ -23,7 +23,7 @@ export default function Schedule() {
   });
 
   const { data: stops = [] } = useQuery({
-    queryKey: ["/api/schedule", selectedDate],
+    queryKey: ["/api/schedule"],
 queryFn: async () => {
       try {
         const r = await fetch(`/api/schedule`, { credentials: "include" });
