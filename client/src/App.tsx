@@ -12,6 +12,7 @@ import Estimator from "./pages/Estimator";
 import Layout from "./pages/Layout";
 import { Mail, Calculator, PenTool, Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
 import Login from "./pages/Login";
+import MobileNav from "./components/MobileNav";
 import { Mail, Calculator, PenTool,
   LayoutDashboard, AlertTriangle, Users, TrendingUp,
   BookOpen, Brain, Settings as SettingsIcon, LogOut,
@@ -79,7 +80,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] flex">
-      <aside className="w-64 min-h-screen bg-[#0d0d14] border-r border-zinc-800/60 flex flex-col fixed left-0 top-0 bottom-0 z-20">
+      <aside className="w-64 min-h-screen hidden md:flex bg-[#0d0d14] border-r border-zinc-800/60 flex flex-col fixed left-0 top-0 bottom-0 z-20">
         <div className="px-6 pt-7 pb-6 border-b border-zinc-800/60">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center">
@@ -141,7 +142,7 @@ function AppContent() {
         </div>
       </aside>
 
-      <main className="flex-1 ml-64 min-h-screen">
+      <main className="flex-1 md:ml-64 min-h-screen pb-16 md:pb-0">
         <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/issues" component={Issues} />
@@ -158,6 +159,7 @@ function AppContent() {
           <Route path="/settings" component={Settings} />
         </Switch>
       </main>
+      <MobileNav />
     </div>
   );
 }
