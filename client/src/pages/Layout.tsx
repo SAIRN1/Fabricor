@@ -347,9 +347,15 @@ export default function Layout() {
             </div>
           )}
           {currentPoints.length > 0 && (
-            <button onClick={cancelDraw} className="mt-3 w-full text-xs text-zinc-500 hover:text-red-400 transition-colors">
-              Cancel current shape
-            </button>
+            <div className="mt-3 space-y-2">
+              <button onClick={undoLastPoint} className="w-full text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg px-3 py-2 transition-colors">↩ Undo Last Point</button>
+              <button onClick={cancelDraw} className="w-full text-xs text-zinc-500 hover:text-red-400 transition-colors">Cancel Shape</button>
+            </div>
+          )}
+
+
+
+
           )}
         </div>
 
