@@ -366,6 +366,64 @@ app.get("/api/analytics/trends", requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: "Failed to fetch analytics" }); }
 });
 
+// ── JOBS ───────────────────────────────────────────────────────────────────
+app.get("/api/jobs", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const allJobs = await db.select().from(jobs).where(eq(jobs.userId, userId)).orderBy(desc(jobs.createdAt));
+    res.json(allJobs);
+  } catch (e) { res.status(500).json({ error: "Failed to fetch jobs" }); }
+});
+
+app.post("/api/jobs", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const [job] = await db.insert(jobs).values({ ...req.body, userId }).returning();
+    if (job.customerId) {
+      await db.update(customers).set({
+        totalJobs: sql`${customers.totalJobs} + 1`,
+        updatedAt: new Date(),
+      }).where(eq(customers.id, job.customerId));
+    }
+    res.json(job);
+  } catch (e) { res.status(500).json({ error: "Failed to create job" }); }
+});
+
+app.patch("/api/jobs/:id", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const [job] = await db.update(jobs).set({ ...req.body, updatedAt: new Date() }).where(and(eq(jobs.id, req.params.id), eq(jobs.userId, userId))).returning();
+    res.json(job);
+  } catch (e) { res.status(500).json({ error: "Failed to update job" }); }
+});
+
+app.get("/api/jobs/:id", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const [job] = await db.select().from(jobs).where(and(eq(jobs.id, req.params.id), eq(jobs.userId, userId))).limit(1);
+    if (!job) return res.status(404).json({ error: "Job not found" });
+    const phases = await db.select().from(jobPhases).where(eq(jobPhases.jobId, job.id)).orderBy(jobPhases.phaseNumber);
+    const feedback = await db.select().from(jobFeedback).where(eq(jobFeedback.jobId, job.id)).orderBy(desc(jobFeedback.createdAt));
+    res.json({ ...job, phases, feedback });
+  } catch (e) { res.status(500).json({ error: "Failed to fetch job" }); }
+});
+
+app.post("/api/jobs/:id/feedback", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const [job] = await db.select().from(jobs).where(and(eq(jobs.id, req.params.id), eq(jobs.userId, userId))).limit(1);
+    if (!job) return res.status(404).json({ error: "Job not found" });
+    const [feedback] = await db.insert(jobFeedback).values({ ...req.body, jobId: job.id, customerId: job.customerId, userId }).returning();
+    if (job.customerId) {
+      if (req.body.feedbackType === "praise") {
+        await db.update(customers).set({ praiseCount: sql`${customers.praiseCount} + 1` }).where(eq(customers.id, job.customerId));
+      } else if (req.body.feedbackType === "complaint") {
+        await db.update(customers).set({ complaintCount: sql`${customers.complaintCount} + 1` }).where(eq(customers.id, job.customerId));
+      }
+    }
+    res.json(feedback);
+  } catch (e) { res.status(500).json({ error: "Failed to create feedback" }); }
+});
 app.listen(PORT, "0.0.0.0", async () => {
   console.log(`Fabricor API running on port ${PORT}`);
   await seedAdmin();
