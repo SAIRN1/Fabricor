@@ -477,7 +477,7 @@ app.delete("/api/schedule/:id", requireAuth, async (req, res) => {
 const __filename2 = fileURLToPath(import.meta.url);
 const __dirname2 = dirname(__filename2);
 const distPath = join(__dirname2, "../dist/public");
-s
+if (existsSync(distPath)) {
   const { default: serveStatic } = await import("serve-static");
   app.use(serveStatic(distPath));
   app.get("*", (_req: any, res: any) => {
