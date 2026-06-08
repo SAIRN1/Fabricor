@@ -372,3 +372,19 @@ app.listen(PORT, "0.0.0.0", async () => {
 });
 
 export default app;
+
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+import { existsSync } from "fs";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const distPath = join(__dirname, "../dist/public");
+
+if (existsSync(distPath)) {
+  const serveStatic = (await import("serve-static")).default;
+  app.use(serveStatic(distPath));
+  app.get("*", (_req, res) => {
+    res.sendFile(join(distPath, "index.html"));
+  });
+}
