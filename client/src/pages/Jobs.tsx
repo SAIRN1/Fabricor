@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, X, Briefcase, ChevronRight } from "lucide-react";
+import { Plus, X, Briefcase, ChevronRight, PenLine } from "lucide-react";
+import SignatureCapture from "./../components/SignatureCapture";
 
 const STAGES = [
   { key: "inquiry", label: "Inquiry", color: "border-zinc-600 text-zinc-400" },
@@ -18,6 +19,7 @@ export default function Jobs() {
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [selected, setSelected] = useState<any>(null);
+  const [showSig, setShowSig] = useState(false);
   const [form, setForm] = useState({
     jobNumber: "", jobName: "", jobAddress: "", jobCity: "",
     jobState: "OH", jobZip: "", jobType: "Hard Surface",
@@ -231,6 +233,14 @@ export default function Jobs() {
         ))}
       </div>
 
+      {showSig && selected && (
+        <SignatureCapture
+          jobName={selected.jobName}
+          customerName={selected.jobAddress || "Customer"}
+          onSave={(sig) => { console.log("Signature saved", sig.length); setShowSig(false); alert("Signature captured and saved!"); }}
+          onClose={() => setShowSig(false)}
+        />
+      )}
       {selected && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[#0d0d14] border border-zinc-700 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -289,7 +299,10 @@ export default function Jobs() {
                   <div className="text-zinc-300 text-sm">{selected.notes}</div>
                 </div>
               )}
-              {selected.stage !== "complete" && (
+              <div className="flex gap-2 mb-3">
+              <button onClick={() => setShowSig(true)} className="flex-1 flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg py-2.5 text-sm"><PenLine size={14} /> Get Signature</button>
+            </div>
+            {selected.stage !== "complete" && (
                 <button onClick={() => { advanceStage(selected); setSelected(null); }}
                   className="w-full bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-lg py-2.5 text-sm flex items-center justify-center gap-2">
                   <ChevronRight size={16} />
