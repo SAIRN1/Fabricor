@@ -279,6 +279,7 @@ export default function Layout() {
   const handleMouseUp = () => setIsPanning(false);
 
   const cancelDraw = () => { setCurrentPoints([]); setSeamStart(null); };
+  const undoLastPoint = () => { setCurrentPoints(pts => pts.slice(0, -1)); };
 
   const exportPDF = () => {
     const canvas = canvasRef.current;
