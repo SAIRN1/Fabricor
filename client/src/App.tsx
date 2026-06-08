@@ -5,6 +5,8 @@ import Dashboard from "./pages/Dashboard";
 import Issues from "./pages/Issues";
 import Intelligence from "./pages/Intelligence";
 import Customers from "./pages/Customers";
+import Jobs from "./pages/Jobs";
+import Schedule from "./pages/Schedule";
 import { Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
 import Login from "./pages/Login";
 import {
@@ -138,6 +140,8 @@ function AppContent() {
           <Route path="/" component={Dashboard} />
           <Route path="/issues" component={Issues} />
           <Route path="/customers" component={Customers} />
+          <Route path="/jobs" component={Jobs} />
+          <Route path="/schedule" component={Schedule} />
           <Route path="/resources" component={Resources} />
           <Route path="/sales" component={Sales} />
           <Route path="/pricebook" component={PriceBook} />
