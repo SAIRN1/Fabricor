@@ -352,9 +352,6 @@ export default function Layout() {
               <button onClick={cancelDraw} className="w-full text-xs text-zinc-500 hover:text-red-400 transition-colors">Cancel Shape</button>
             </div>
           )}
-
-
-          )}
         </div>
 
         <div className="px-4 py-4 border-b border-zinc-800">
