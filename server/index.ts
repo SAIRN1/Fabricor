@@ -738,3 +738,22 @@ app.post("/api/admin/send-test-email", requireAuth, async (req, res) => {
     res.status(500).json({ error: String(e) });
   }
 });
+
+const __filename2 = fileURLToPath(import.meta.url);
+const __dirname2 = dirname(__filename2);
+const distPath = join(__dirname2, "../dist/public");
+
+if (existsSync(distPath)) {
+  const { default: serveStatic } = await import("serve-static");
+  app.use(serveStatic(distPath));
+  app.get("*", (_req: any, res: any) => {
+    res.sendFile(join(distPath, "index.html"));
+  });
+}
+
+app.listen(PORT, "0.0.0.0", async () => {
+  console.log(`Fabricor API running on port ${PORT}`);
+  await seedAdmin();
+});
+
+export default app;
