@@ -47,11 +47,11 @@ export default function Landing() {
             <a href="#features" className="text-gray-500 hover:text-gray-900 text-sm transition-colors hidden md:block">Features</a>
             <a href="#compare" className="text-gray-500 hover:text-gray-900 text-sm transition-colors hidden md:block">Compare</a>
             <a href="#pricing" className="text-gray-500 hover:text-gray-900 text-sm transition-colors hidden md:block">Pricing</a>
-            <Link href="/login?register=true">
+            <a href="/login?register=true">
               <a className="bg-amber-500 hover:bg-amber-400 text-black font-semibold px-4 py-2 rounded-lg text-sm transition-colors">
                 Start Free Trial
               </a>
-            </Link>
+            </a>
           </div>
         </div>
       </nav>
@@ -70,11 +70,11 @@ export default function Landing() {
             Fabricor replaces Moraware, Stone Profit System, Stonify, and your spreadsheets with one AI-powered platform built for stone fabrication shops.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/login?register=true">
+            <a href="/login?register=true">
               <a className="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 text-black font-bold px-8 py-4 rounded-xl text-lg transition-colors shadow-lg shadow-amber-200">
                 Start Free Trial <ArrowRight size={20} />
               </a>
-            </Link>
+            </a>
             <a href="#features" className="flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold px-8 py-4 rounded-xl text-lg transition-colors border border-gray-200 shadow-sm">
               See Features
             </a>
@@ -188,11 +188,11 @@ export default function Landing() {
                     </div>
                   ))}
                 </div>
-                <Link href="/login?register=true">
+                <a href="/login?register=true">
                   <a className={`w-full block text-center py-3 rounded-xl font-bold text-sm transition-colors ${plan.btnColor}`}>
                     Start Free Trial
                   </a>
-                </Link>
+                </a>
               </div>
             ))}
           </div>
@@ -216,11 +216,11 @@ export default function Landing() {
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-4xl font-bold mb-4 text-black">Ready to know your shop better?</h2>
           <p className="text-amber-900 text-lg mb-8">Join the shops replacing Moraware, Stone Profit System, and Stonify with Fabricor. 14-day free trial, no card required.</p>
-          <Link href="/login?register=true">
+          <a href="/login?register=true">
             <a className="inline-flex items-center gap-2 bg-black hover:bg-gray-900 text-white font-bold px-8 py-4 rounded-xl text-lg transition-colors shadow-xl">
               Start Free Trial <ArrowRight size={20} />
             </a>
-          </Link>
+          </a>
         </div>
       </section>
 
@@ -235,7 +235,7 @@ export default function Landing() {
           </div>
           <div className="flex gap-6 text-gray-400 text-sm">
             <a href="mailto:hello@sairn.com" className="hover:text-gray-600 transition-colors">hello@sairn.com</a>
-            <Link href="/login?register=true"><a className="hover:text-gray-600 transition-colors">Login</a></Link>
+            <a href="/login?register=true"><a className="hover:text-gray-600 transition-colors">Login</a></a>
           </div>
         </div>
       </footer>
