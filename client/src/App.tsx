@@ -15,6 +15,7 @@ import CustomerPortal from "./pages/CustomerPortal";
 import Silica from "./pages/Silica";
 import QuoteGenerator from "./pages/QuoteGenerator";
 import Team from "./pages/Team";
+import Leads from "./pages/Leads";
 import Inventory from "./pages/Inventory";
 import QuickBooks from "./pages/QuickBooks";
 import Billing from "./pages/Billing";
@@ -81,6 +82,7 @@ function AppContent() {
     { href: "/silica", icon: Shield, label: "Silica", desc: "Safety compliance" },
     { href: "/quote", icon: Sparkles, label: "AI Quote", desc: "Generate quotes with AI" },
     { href: "/team", icon: Users, label: "Team", desc: "Manage team members" },
+    { href: "/leads", icon: TrendingUp, label: "Leads", desc: "Lead management" },
     { href: "/resources", icon: Users, label: "Resources", desc: "Team productivity" },
     { href: "/sales", icon: TrendingUp, label: "Sales", desc: "Rep performance" },
     { href: "/pricebook", icon: BookOpen, label: "Price Book", desc: "Pricing & costs" },
@@ -182,6 +184,7 @@ function AppContent() {
           <Route path="/silica" component={Silica} />
           <Route path="/quote" component={QuoteGenerator} />
           <Route path="/team" component={Team} />
+          <Route path="/leads" component={Leads} />
           <Route path="/landing" component={Landing} />
           <Route path="/resources" component={Resources} />
           <Route path="/sales" component={Sales} />
