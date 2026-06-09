@@ -109,10 +109,10 @@ export function Resources() {
             <button onClick={() => setShowForm(true)} className="text-amber-400 text-sm mt-2 hover:underline">Log first activity</button>
           </div>
         )}
+      </div>
     </div>
   );
 }
-// ── SALES ──────────────────────────────────────────────────────────────────
 export function Sales() {
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
@@ -455,7 +455,6 @@ export function Settings() {
           </div>
         )}
       </div>
-    </div>
       <div className="bg-[#0d0d14] border border-zinc-800/60 rounded-xl p-6 mb-6">
         <h2 className="text-white font-semibold mb-1">Google Reviews</h2>
         <p className="text-zinc-500 text-sm mb-4">Auto-send a review request when a job is marked complete</p>
@@ -483,5 +482,6 @@ export function Settings() {
           <p className="text-zinc-500 text-xs">Coming: Worker training log, attestation records, Cal/OSHA inspection docs.</p>
         </div>
       </div>
+    </div>
   );
 }

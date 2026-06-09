@@ -1,6 +1,6 @@
-import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield, useState, useEffect, createContext, useContext } from "react";
-import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield, Route, Switch, useLocation, Link } from "wouter";
-import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState, useEffect, createContext, useContext } from "react";
+import { Route, Switch, useLocation, Link } from "wouter";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Dashboard from "./pages/Dashboard";
 import Issues from "./pages/Issues";
 import Intelligence from "./pages/Intelligence";
@@ -18,12 +18,12 @@ import QuickBooks from "./pages/QuickBooks";
 import Billing from "./pages/Billing";
 import Landing from "./pages/Landing";
 import Import from "./pages/Import";
-import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield, Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
+import { Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
 import Login from "./pages/Login";
 import MobileNav from "./components/MobileNav";
 import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield,
   LayoutDashboard, AlertTriangle, Users, TrendingUp,
-  BookOpen, Brain, Settings as SettingsIcon, LogOut,
+  Brain, Settings as SettingsIcon, LogOut,
   ChevronRight, Activity, Zap, Briefcase, Calendar
 } from "lucide-react";
 

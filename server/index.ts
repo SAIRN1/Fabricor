@@ -28,7 +28,7 @@ const pool = new Pool({
 });
 const db = drizzle(pool);
 const resend = new Resend(process.env.RESEND_API_KEY || "placeholder");
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", { apiVersion: "2024-06-20" });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", { apiVersion: "2026-05-27.dahlia" });
 
 const STRIPE_PRICES: Record<string, string> = {
   starter: process.env.STRIPE_PRICE_STARTER || "price_starter",
@@ -721,7 +721,7 @@ app.patch("/api/auth/update-profile", requireAuth, async (req, res) => {
   try {
     const userId = (req.session as any).userId;
     const { shopName, adminEmail } = req.body;
-    const [user] = await db.update(users).set({ shopName, email: adminEmail || undefined, updatedAt: new Date() }).where(eq(users.id, userId)).returning();
+    const [user] = await db.update(users).set({ shopName, email: adminEmail || undefined }).where(eq(users.id, userId)).returning();
     res.json({ user: { id: user.id, email: user.email, name: user.name, role: user.role, plan: user.plan, shopName: user.shopName } });
   } catch (e) { res.status(500).json({ error: "Failed to update profile" }); }
 });
