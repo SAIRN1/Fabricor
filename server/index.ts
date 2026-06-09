@@ -813,6 +813,25 @@ app.delete("/api/jobs/:id/notes/:noteId", requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: "Failed to delete note" }); }
 });
 
+
+app.get("/api/jobs/stale", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const result = await db.execute(sql`
+      SELECT id, job_name, job_number, stage,
+        EXTRACT(DAY FROM NOW() - updated_at)::int AS days_in_stage
+      FROM jobs
+      WHERE user_id = ${userId}
+        AND stage != 'complete'
+        AND stage != 'inquiry'
+        AND EXTRACT(DAY FROM NOW() - updated_at) > 5
+      ORDER BY days_in_stage DESC
+      LIMIT 10
+    `);
+    res.json(result.rows);
+  } catch (e) { res.json([]); }
+});
+
 app.listen(PORT, "0.0.0.0", async () => {
   console.log(`StoneDesk API running on port ${PORT}`);
   await seedAdmin();
