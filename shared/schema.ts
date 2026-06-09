@@ -378,12 +378,3 @@ export const jobPhotos = pgTable("job_photos", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const jobPhotos = pgTable("job_photos", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id").notNull().references(() => users.id),
-  jobId: uuid("job_id").references(() => jobs.id),
-  photoType: varchar("photo_type", { length: 50 }).default("general"),
-  caption: varchar("caption", { length: 500 }),
-  dataUrl: text("data_url").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-});
