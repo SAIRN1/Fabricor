@@ -664,3 +664,59 @@ app.post("/api/admin/send-weekly-report", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Failed to send report" });
   }
 });
+
+import Stripe from "stripe";
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", { apiVersion: "2024-06-20" });
+
+const STRIPE_PRICES: Record<string, string> = {
+  starter: process.env.STRIPE_PRICE_STARTER || "price_starter",
+  professional: process.env.STRIPE_PRICE_PROFESSIONAL || "price_professional",
+  enterprise: process.env.STRIPE_PRICE_ENTERPRISE || "price_enterprise",
+};
+
+app.post("/api/billing/create-checkout", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (!user) return res.status(404).json({ error: "User not found" });
+    const { plan } = req.body;
+    const priceId = STRIPE_PRICES[plan];
+    if (!priceId) return res.status(400).json({ error: "Invalid plan" });
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      payment_method_types: ["card"],
+      customer_email: user.email,
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${req.headers.origin}/billing?success=true`,
+      cancel_url: `${req.headers.origin}/billing?canceled=true`,
+      metadata: { userId: user.id, plan },
+    });
+    res.json({ url: session.url });
+  } catch (e) { res.status(500).json({ error: "Checkout failed" }); }
+});
+
+app.post("/api/billing/portal", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (!user?.stripeCustomerId) return res.status(400).json({ error: "No billing account" });
+    const session = await stripe.billingPortal.sessions.create({
+      customer: user.stripeCustomerId,
+      return_url: `${req.headers.origin}/billing`,
+    });
+    res.json({ url: session.url });
+  } catch (e) { res.status(500).json({ error: "Portal failed" }); }
+});
+
+app.post("/api/billing/webhook", express.raw({ type: "application/json" }), async (req, res) => {
+  const sig = req.headers["stripe-signature"] as string;
+  try {
+    const event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET || "");
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object as any;
+      const { userId, plan } = session.metadata;
+      await db.update(users).set({ plan, stripeCustomerId: session.customer, stripeSubscriptionId: session.subscription }).where(eq(users.id, userId));
+    }
+    res.json({ received: true });
+  } catch (e) { res.status(400).json({ error: "Webhook failed" }); }
+});
