@@ -2,9 +2,12 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, X, MapPin, Clock, User, Navigation } from "lucide-react";
 
-const STOP_TYPES = ["template", "installation", "delivery", "service"] as const;
+const STOP_TYPES = ["sales", "template", "installation", "delivery", "service", "measure", "follow_up"] as const;
 
 const stopColors: Record<string, string> = {
+  sales: "text-purple-400 bg-purple-950/40 border-purple-900/60",
+  measure: "text-cyan-400 bg-cyan-950/40 border-cyan-900/60",
+  follow_up: "text-pink-400 bg-pink-950/40 border-pink-900/60",
   template: "text-blue-400 bg-blue-950/40 border-blue-900/60",
   installation: "text-emerald-400 bg-emerald-950/40 border-emerald-900/60",
   delivery: "text-amber-400 bg-amber-950/40 border-amber-900/60",
