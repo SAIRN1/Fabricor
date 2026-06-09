@@ -11,19 +11,19 @@ const FEATURES = [
 ];
 
 const COMPARISON = [
-  { feature: "Job Pipeline", fabricor: true, moraware: true, stonePro: true },
-  { feature: "Customer Database", fabricor: true, moraware: true, stonePro: true },
-  { feature: "Scheduling", fabricor: true, moraware: true, stonePro: false },
-  { feature: "Route Optimization", fabricor: true, moraware: false, stonePro: false },
-  { feature: "AI Intelligence", fabricor: true, moraware: false, stonePro: false },
-  { feature: "AI Email Generator", fabricor: true, moraware: false, stonePro: false },
-  { feature: "2D Layout Tool", fabricor: true, moraware: false, stonePro: false },
-  { feature: "Digital Signatures", fabricor: true, moraware: false, stonePro: false },
-  { feature: "Price Estimator", fabricor: true, moraware: false, stonePro: true },
-  { feature: "Excel Import", fabricor: true, moraware: true, stonePro: false },
-  { feature: "Mobile Optimized", fabricor: true, moraware: false, stonePro: false },
-  { feature: "Weekly AI Reports", fabricor: true, moraware: false, stonePro: false },
-  { feature: "Institutional Memory", fabricor: true, moraware: false, stonePro: false },
+  { feature: "Job Pipeline", fabricor: true, moraware: true, stonePro: true, stonify: true },
+  { feature: "Customer Database", fabricor: true, moraware: true, stonePro: true, stonify: true },
+  { feature: "Scheduling", fabricor: true, moraware: true, stonePro: false, stonify: true },
+  { feature: "Route Optimization", fabricor: true, moraware: false, stonePro: false, stonify: false },
+  { feature: "AI Intelligence", fabricor: true, moraware: false, stonePro: false, stonify: false },
+  { feature: "AI Email Generator", fabricor: true, moraware: false, stonePro: false, stonify: false },
+  { feature: "2D Layout Tool", fabricor: true, moraware: false, stonePro: false, stonify: false },
+  { feature: "Digital Signatures", fabricor: true, moraware: false, stonePro: false, stonify: false },
+  { feature: "Price Estimator", fabricor: true, moraware: false, stonePro: true, stonify: true },
+  { feature: "Excel Import", fabricor: true, moraware: true, stonePro: false, stonify: false },
+  { feature: "Mobile Optimized", fabricor: true, moraware: false, stonePro: false, stonify: true },
+  { feature: "Weekly AI Reports", fabricor: true, moraware: false, stonePro: false, stonify: false },
+  { feature: "Institutional Memory", fabricor: true, moraware: false, stonePro: false, stonify: false },
 ];
 
 const PLANS = [
@@ -35,7 +35,6 @@ const PLANS = [
 export default function Landing() {
   return (
     <div className="min-h-screen bg-[#080810] text-white">
-      {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#080810]/90 backdrop-blur-sm border-b border-zinc-800/60 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -57,7 +56,6 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* HERO */}
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-full px-4 py-1.5 text-amber-400 text-sm font-medium mb-8">
@@ -69,7 +67,7 @@ export default function Landing() {
             <span className="text-amber-400">smarter than ever.</span>
           </h1>
           <p className="text-zinc-400 text-xl leading-relaxed max-w-2xl mx-auto mb-10">
-            Fabricor replaces Moraware, Stone Profit System, and your spreadsheets with one AI-powered platform built for stone fabrication shops.
+            Fabricor replaces Moraware, Stone Profit System, Stonify, and your spreadsheets with one AI-powered platform built for stone fabrication shops.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/login">
@@ -85,7 +83,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* STATS */}
       <section className="py-16 px-6 border-y border-zinc-800/60">
         <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
@@ -102,7 +99,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* FEATURES */}
       <section id="features" className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
@@ -123,7 +119,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* AI HIGHLIGHT */}
       <section className="py-20 px-6 bg-gradient-to-r from-amber-950/20 to-zinc-900/20 border-y border-amber-800/20">
         <div className="max-w-4xl mx-auto text-center">
           <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 w-fit mx-auto mb-6">
@@ -137,33 +132,33 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* COMPARISON */}
       <section id="compare" className="py-20 px-6">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4">How we compare</h2>
-            <p className="text-zinc-400 text-lg">See why shops are switching from Moraware to Fabricor</p>
+            <p className="text-zinc-400 text-lg">See why shops are switching from Moraware, Stone Profit System, and Stonify to Fabricor</p>
           </div>
           <div className="bg-[#0d0d14] border border-zinc-800/60 rounded-2xl overflow-hidden">
-            <div className="grid grid-cols-4 gap-0 border-b border-zinc-800 px-6 py-4">
+            <div className="grid grid-cols-5 gap-0 border-b border-zinc-800 px-6 py-4">
               <div className="text-zinc-500 text-sm font-mono uppercase">Feature</div>
-              <div className="text-amber-400 font-bold text-center">Fabricor</div>
-              <div className="text-zinc-400 font-semibold text-center">Moraware</div>
-              <div className="text-zinc-400 font-semibold text-center">Stone Pro</div>
+              <div className="text-amber-400 font-bold text-center text-sm">Fabricor</div>
+              <div className="text-zinc-400 font-semibold text-center text-sm">Moraware</div>
+              <div className="text-zinc-400 font-semibold text-center text-sm">Stone Profit</div>
+              <div className="text-zinc-400 font-semibold text-center text-sm">Stonify</div>
             </div>
-            {COMPARISON.map(({ feature, fabricor, moraware, stonePro }) => (
-              <div key={feature} className="grid grid-cols-4 gap-0 border-b border-zinc-800/40 px-6 py-3 hover:bg-zinc-900/20">
+            {COMPARISON.map(({ feature, fabricor, moraware, stonePro, stonify }) => (
+              <div key={feature} className="grid grid-cols-5 gap-0 border-b border-zinc-800/40 px-6 py-3 hover:bg-zinc-900/20">
                 <div className="text-zinc-300 text-sm">{feature}</div>
                 <div className="flex justify-center">{fabricor ? <CheckCircle size={18} className="text-emerald-400" /> : <X size={18} className="text-zinc-700" />}</div>
                 <div className="flex justify-center">{moraware ? <CheckCircle size={18} className="text-zinc-500" /> : <X size={18} className="text-zinc-700" />}</div>
                 <div className="flex justify-center">{stonePro ? <CheckCircle size={18} className="text-zinc-500" /> : <X size={18} className="text-zinc-700" />}</div>
+                <div className="flex justify-center">{stonify ? <CheckCircle size={18} className="text-zinc-500" /> : <X size={18} className="text-zinc-700" />}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* PRICING */}
       <section id="pricing" className="py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
@@ -173,7 +168,7 @@ export default function Landing() {
           <div className="grid md:grid-cols-3 gap-6">
             {PLANS.map(plan => (
               <div key={plan.name} className={`relative bg-[#0d0d14] border-2 ${plan.color} rounded-2xl p-6`}>
-                {plan.popular && (
+                {(plan as any).popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-black text-xs font-bold px-3 py-1 rounded-full">
                     MOST POPULAR
                   </div>
@@ -205,7 +200,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* TESTIMONIAL */}
       <section className="py-20 px-6 border-t border-zinc-800/60">
         <div className="max-w-2xl mx-auto text-center">
           <div className="flex justify-center gap-1 mb-6">
@@ -218,11 +212,10 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* CTA */}
       <section className="py-20 px-6 bg-amber-500/5 border-t border-amber-500/10">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-4xl font-bold mb-4">Ready to know your shop better?</h2>
-          <p className="text-zinc-400 text-lg mb-8">Join the shops replacing Moraware with Fabricor. 14-day free trial, no card required.</p>
+          <p className="text-zinc-400 text-lg mb-8">Join the shops replacing Moraware, Stone Profit System, and Stonify with Fabricor. 14-day free trial, no card required.</p>
           <Link href="/login">
             <a className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-black font-bold px-8 py-4 rounded-xl text-lg transition-colors">
               Start Free Trial <ArrowRight size={20} />
@@ -231,7 +224,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* FOOTER */}
       <footer className="py-8 px-6 border-t border-zinc-800/60">
         <div className="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-2">
