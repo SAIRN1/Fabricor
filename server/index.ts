@@ -643,7 +643,7 @@ Write 2-3 sentences: what happened last week, the biggest concern, and one speci
 </body>
 </html>`;
       await resend.emails.send({
-        from: "Fabricor <onboarding@resend.dev>",
+        from: "Fabricor <reports@sairn.com>",
         to: user.email,
         subject: `Week ${prevWeek} Shop Report — ${weekIssues.length} issues, $${totalImpact.toFixed(0)} impact`,
         html: emailHtml,
