@@ -109,8 +109,9 @@ export function Resources() {
             <button onClick={() => setShowForm(true)} className="text-amber-400 text-sm mt-2 hover:underline">Log first activity</button>
           </div>
         )}
-      </div>
-
+    </div>
+  );
+}
 // ── SALES ──────────────────────────────────────────────────────────────────
 export function Sales() {
   const qc = useQueryClient();
