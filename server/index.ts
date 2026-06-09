@@ -667,12 +667,6 @@ if (existsSync(distPath)) {
   });
 }
 
-app.listen(PORT, "0.0.0.0", async () => {
-  console.log(`Fabricor API running on port ${PORT}`);
-  await seedAdmin();
-});
-
-export default app;
 app.get("/api/inventory", requireAuth, async (req, res) => {
   try {
     const userId = (req.session as any).userId;
@@ -680,7 +674,6 @@ app.get("/api/inventory", requireAuth, async (req, res) => {
     res.json(items);
   } catch (e) { res.json([]); }
 });
-
 app.post("/api/inventory", requireAuth, async (req, res) => {
   try {
     const userId = (req.session as any).userId;
@@ -688,7 +681,6 @@ app.post("/api/inventory", requireAuth, async (req, res) => {
     res.json(item);
   } catch (e) { res.status(500).json({ error: "Failed to add slab" }); }
 });
-
 app.patch("/api/inventory/:id", requireAuth, async (req, res) => {
   try {
     const userId = (req.session as any).userId;
@@ -696,7 +688,6 @@ app.patch("/api/inventory/:id", requireAuth, async (req, res) => {
     res.json(item);
   } catch (e) { res.status(500).json({ error: "Failed to update slab" }); }
 });
-
 app.delete("/api/inventory/:id", requireAuth, async (req, res) => {
   try {
     const userId = (req.session as any).userId;
@@ -704,3 +695,9 @@ app.delete("/api/inventory/:id", requireAuth, async (req, res) => {
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: "Failed to delete slab" }); }
 });
+app.listen(PORT, "0.0.0.0", async () => {
+  console.log(`Fabricor API running on port ${PORT}`);
+  await seedAdmin();
+});
+
+export default app;
