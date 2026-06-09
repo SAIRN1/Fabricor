@@ -235,7 +235,7 @@ export default function Landing() {
           </div>
           <div className="flex gap-6 text-gray-400 text-sm">
             <a href="mailto:hello@sairn.com" className="hover:text-gray-600 transition-colors">hello@sairn.com</a>
-            <a href="/login?register=true"><a className="hover:text-gray-600 transition-colors">Login</a></a>
+            <a href="/login?register=true" className="hover:text-gray-600 transition-colors">Login</a>
           </div>
         </div>
       </footer>
