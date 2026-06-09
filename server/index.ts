@@ -655,3 +655,12 @@ Write 2-3 sentences: what happened last week, the biggest concern, and one speci
 
 cron.schedule("0 7 * * 1", sendWeeklyReport, { timezone: "America/New_York" });
 console.log("Weekly report cron scheduled — every Monday at 7am ET");
+
+app.post("/api/admin/send-weekly-report", requireAuth, async (req, res) => {
+  try {
+    await sendWeeklyReport();
+    res.json({ ok: true, message: "Weekly report sent!" });
+  } catch (e) {
+    res.status(500).json({ error: "Failed to send report" });
+  }
+});
