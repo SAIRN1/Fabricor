@@ -126,7 +126,7 @@ export default function Landing() {
           </div>
           <h2 className="text-4xl font-bold mb-4">Institutional Memory</h2>
           <p className="text-zinc-300 text-xl leading-relaxed max-w-2xl mx-auto mb-8">
-            Fabricor remembers every job, every complaint, every praise, every employee — forever. Before your crew starts a Kopf Builders job worth $38,000, Claude briefs them: what went wrong last time, which templator caused issues, what the client is sensitive about.
+            Fabricor remembers every job, every complaint, every praise, every employee — forever. Before your crew starts a high-value builder job, Claude briefs them: what went wrong last time, which templator caused issues, what the client is sensitive about.
           </p>
           <p className="text-zinc-500 text-lg">No more institutional knowledge walking out the door when an employee leaves.</p>
         </div>
@@ -206,7 +206,7 @@ export default function Landing() {
             {[1,2,3,4,5].map(i => <Star key={i} size={20} className="text-amber-400 fill-amber-400" />)}
           </div>
           <blockquote className="text-2xl font-medium text-zinc-200 leading-relaxed mb-6">
-            "Fabricor showed us that a $38,000 Kopf Builders job had three issues in the primary bath on the last two visits. We caught it before the third install. That's $316/hr saved before we even started."
+            "Fabricor flagged that one of our biggest builder accounts had recurring issues in the primary bath on their last two jobs. We caught it before the third install. That's $316/hr saved before we even walked in the door."
           </blockquote>
           <div className="text-zinc-500">Stone Fabrication Shop Owner · Ohio</div>
         </div>
