@@ -1,6 +1,6 @@
-import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, useState, useEffect, createContext, useContext } from "react";
-import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Route, Switch, useLocation, Link } from "wouter";
-import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield, useState, useEffect, createContext, useContext } from "react";
+import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield, Route, Switch, useLocation, Link } from "wouter";
+import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Dashboard from "./pages/Dashboard";
 import Issues from "./pages/Issues";
 import Intelligence from "./pages/Intelligence";
@@ -12,15 +12,16 @@ import Estimator from "./pages/Estimator";
 import Layout from "./pages/Layout";
 import Onboarding from "./pages/Onboarding";
 import CustomerPortal from "./pages/CustomerPortal";
+import Silica from "./pages/Silica";
 import Inventory from "./pages/Inventory";
 import QuickBooks from "./pages/QuickBooks";
 import Billing from "./pages/Billing";
 import Landing from "./pages/Landing";
 import Import from "./pages/Import";
-import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
+import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield, Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
 import Login from "./pages/Login";
 import MobileNav from "./components/MobileNav";
-import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen,
+import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield,
   LayoutDashboard, AlertTriangle, Users, TrendingUp,
   BookOpen, Brain, Settings as SettingsIcon, LogOut,
   ChevronRight, Activity, Zap, Briefcase, Calendar
@@ -75,6 +76,7 @@ function AppContent() {
     { href: "/billing", icon: CreditCard, label: "Billing", desc: "Plans & subscription" },
     { href: "/inventory", icon: Layers, label: "Inventory", desc: "Slab inventory" },
     { href: "/quickbooks", icon: BookOpen, label: "QuickBooks", desc: "QB export" },
+    { href: "/silica", icon: Shield, label: "Silica", desc: "Safety compliance" },
     { href: "/resources", icon: Users, label: "Resources", desc: "Team productivity" },
     { href: "/sales", icon: TrendingUp, label: "Sales", desc: "Rep performance" },
     { href: "/pricebook", icon: BookOpen, label: "Price Book", desc: "Pricing & costs" },
@@ -173,6 +175,7 @@ function AppContent() {
           <Route path="/inventory" component={Inventory} />
           <Route path="/quickbooks" component={QuickBooks} />
           <Route path="/track" component={CustomerPortal} />
+          <Route path="/silica" component={Silica} />
           <Route path="/landing" component={Landing} />
           <Route path="/resources" component={Resources} />
           <Route path="/sales" component={Sales} />
