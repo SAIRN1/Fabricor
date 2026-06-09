@@ -4,7 +4,7 @@ import { Zap, Eye, EyeOff, ArrowRight } from "lucide-react";
 
 export default function Login() {
   const { setUser } = useAuth();
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<"login" | "register">(window.location.search.includes("register") ? "register" : "login");
   const [form, setForm] = useState({ email: "", password: "", name: "", shopName: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
