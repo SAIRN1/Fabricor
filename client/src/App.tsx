@@ -13,6 +13,7 @@ import Layout from "./pages/Layout";
 import Onboarding from "./pages/Onboarding";
 import CustomerPortal from "./pages/CustomerPortal";
 import Silica from "./pages/Silica";
+import QuoteGenerator from "./pages/QuoteGenerator";
 import Inventory from "./pages/Inventory";
 import QuickBooks from "./pages/QuickBooks";
 import Billing from "./pages/Billing";
@@ -77,6 +78,7 @@ function AppContent() {
     { href: "/inventory", icon: Layers, label: "Inventory", desc: "Slab inventory" },
     { href: "/quickbooks", icon: BookOpen, label: "QuickBooks", desc: "QB export" },
     { href: "/silica", icon: Shield, label: "Silica", desc: "Safety compliance" },
+    { href: "/quote", icon: Sparkles, label: "AI Quote", desc: "Generate quotes with AI" },
     { href: "/resources", icon: Users, label: "Resources", desc: "Team productivity" },
     { href: "/sales", icon: TrendingUp, label: "Sales", desc: "Rep performance" },
     { href: "/pricebook", icon: BookOpen, label: "Price Book", desc: "Pricing & costs" },
@@ -176,6 +178,7 @@ function AppContent() {
           <Route path="/quickbooks" component={QuickBooks} />
           <Route path="/track" component={CustomerPortal} />
           <Route path="/silica" component={Silica} />
+          <Route path="/quote" component={QuoteGenerator} />
           <Route path="/landing" component={Landing} />
           <Route path="/resources" component={Resources} />
           <Route path="/sales" component={Sales} />
