@@ -568,3 +568,90 @@ app.post("/api/optimize-route", requireAuth, async (req, res) => {
     res.json({ optimizedOrder: req.body.stops.map((s: any) => s.id), totalDriveMinutes: 0 });
   }
 });
+
+import cron from "node-cron";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+async function sendWeeklyReport() {
+  try {
+    const adminEmail = process.env.ADMIN_EMAIL_NOTIFY || process.env.ADMIN_EMAIL;
+    if (!adminEmail) return;
+    const allUsers = await db.select().from(users).where(eq(users.role, "admin"));
+    for (const user of allUsers) {
+      const { week, year } = getWeekNumber(new Date());
+      const prevWeek = week > 1 ? week - 1 : 52;
+      const prevYear = week > 1 ? year : year - 1;
+      const weekIssues = await db.select().from(issues).where(and(eq(issues.userId, user.id), eq(issues.weekNumber, prevWeek), eq(issues.year, prevYear)));
+      const totalImpact = weekIssues.reduce((s, i) => s + (i.totalImpact || 0), 0);
+      const remakes = weekIssues.filter(i => i.issueType === "remake").length;
+      const byRootCause = weekIssues.reduce((acc: Record<string, number>, i) => { acc[i.rootCause] = (acc[i.rootCause] || 0) + 1; return acc; }, {});
+      const topCause = Object.entries(byRootCause).sort((a, b) => b[1] - a[1])[0];
+      let aiInsight = "No issues logged last week — great job!";
+      if (weekIssues.length > 0) {
+        const prompt = `Weekly summary for stone fabrication shop ${user.shopName || ""}:
+Week ${prevWeek}, ${prevYear}: ${weekIssues.length} issues, $${totalImpact.toFixed(0)} total impact, ${remakes} remakes.
+Top root cause: ${topCause ? `${topCause[0]} (${topCause[1]} times)` : "none"}.
+Write 2-3 sentences: what happened last week, the biggest concern, and one specific action to take this week. Be direct and practical.`;
+        const r = await fetch("https://sairn.vercel.app/api/claude", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 300, messages: [{ role: "user", content: prompt }] }),
+        });
+        const data = await r.json();
+        aiInsight = data.content?.[0]?.text || aiInsight;
+      }
+      const healthScore = Math.max(0, Math.min(100, 100 - (weekIssues.length * 5) - (remakes * 10)));
+      const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0a0a0f;font-family:'DM Sans',Arial,sans-serif;color:#e4e4e7;">
+  <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
+    <div style="margin-bottom:32px;">
+      <div style="background:#f59e0b;display:inline-block;padding:8px 16px;border-radius:8px;margin-bottom:16px;">
+        <span style="color:#000;font-weight:bold;font-size:18px;">⚡ FABRICOR</span>
+      </div>
+      <h1 style="color:#ffffff;font-size:24px;margin:0 0 8px;">Weekly Shop Report</h1>
+      <p style="color:#71717a;margin:0;">Week ${prevWeek}, ${prevYear} · ${user.shopName || "Your Shop"}</p>
+    </div>
+    <div style="background:#0d0d14;border:1px solid #27272a;border-radius:16px;padding:24px;margin-bottom:16px;">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center;">
+        <div>
+          <div style="color:#f59e0b;font-size:32px;font-weight:bold;font-family:monospace;">${healthScore}</div>
+          <div style="color:#71717a;font-size:12px;margin-top:4px;">Health Score</div>
+        </div>
+        <div>
+          <div style="color:#ef4444;font-size:32px;font-weight:bold;font-family:monospace;">${weekIssues.length}</div>
+          <div style="color:#71717a;font-size:12px;margin-top:4px;">Total Issues</div>
+        </div>
+        <div>
+          <div style="color:#f59e0b;font-size:32px;font-weight:bold;font-family:monospace;">$${totalImpact.toFixed(0)}</div>
+          <div style="color:#71717a;font-size:12px;margin-top:4px;">Total Impact</div>
+        </div>
+      </div>
+    </div>
+    <div style="background:#1a0a00;border:1px solid #78350f;border-radius:16px;padding:24px;margin-bottom:16px;">
+      <div style="color:#f59e0b;font-weight:bold;margin-bottom:12px;">🧠 Claude's Analysis</div>
+      <p style="color:#d4d4d8;line-height:1.6;margin:0;">${aiInsight}</p>
+    </div>
+    <div style="text-align:center;padding:24px 0;">
+      <a href="https://fabricor-production.up.railway.app" style="background:#f59e0b;color:#000;font-weight:bold;padding:12px 32px;border-radius:8px;text-decoration:none;display:inline-block;">Open Fabricor Dashboard</a>
+    </div>
+    <p style="color:#3f3f46;font-size:12px;text-align:center;">Fabricor by SAIRN Technologies · Sent every Monday at 7am</p>
+  </div>
+</body>
+</html>`;
+      await resend.emails.send({
+        from: "Fabricor <onboarding@resend.dev>",
+        to: user.email,
+        subject: `Week ${prevWeek} Shop Report — ${weekIssues.length} issues, $${totalImpact.toFixed(0)} impact`,
+        html: emailHtml,
+      });
+      console.log("Weekly report sent to:", user.email);
+    }
+  } catch (e) { console.error("Weekly report error:", e); }
+}
+
+cron.schedule("0 7 * * 1", sendWeeklyReport, { timezone: "America/New_York" });
+console.log("Weekly report cron scheduled — every Monday at 7am ET");
