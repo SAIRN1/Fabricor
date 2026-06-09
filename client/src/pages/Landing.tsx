@@ -7,23 +7,23 @@ const FEATURES = [
   { icon: PenTool, title: "2D Layout Drawing Tool", desc: "Draw countertop shapes, place seams, mark cutouts — right in the browser. Auto-calculates square footage. Export to PNG and send to the client before you cut a single slab." },
   { icon: Mail, title: "AI Email Generator", desc: "Template confirmations, installation reminders, completion follow-ups, dispute letters — Claude writes them in seconds. You review and send. Professional every time." },
   { icon: Calculator, title: "Price Estimator", desc: "Build accurate estimates with real-time cost calculation. Add areas, edge types, cutouts, and set your margin. Copy the full estimate with one click." },
-  { icon: FileSpreadsheet, title: "Excel Import", desc: "Upload your existing Moraware export or any spreadsheet. Fabricor maps the columns automatically and creates all your jobs and customers in seconds." },
+  { icon: FileSpreadsheet, title: "Excel Import", desc: "Upload your existing Moraware export or any spreadsheet. StoneDesk maps the columns automatically and creates all your jobs and customers in seconds." },
 ];
 
 const COMPARISON = [
-  { feature: "Job Pipeline", fabricor: true, moraware: true, stonePro: true, stonify: true },
-  { feature: "Customer Database", fabricor: true, moraware: true, stonePro: true, stonify: true },
-  { feature: "Scheduling", fabricor: true, moraware: true, stonePro: false, stonify: true },
-  { feature: "Route Optimization", fabricor: true, moraware: false, stonePro: false, stonify: false },
-  { feature: "AI Intelligence", fabricor: true, moraware: false, stonePro: false, stonify: false },
-  { feature: "AI Email Generator", fabricor: true, moraware: false, stonePro: false, stonify: false },
-  { feature: "2D Layout Tool", fabricor: true, moraware: false, stonePro: false, stonify: false },
-  { feature: "Digital Signatures", fabricor: true, moraware: false, stonePro: false, stonify: false },
-  { feature: "Price Estimator", fabricor: true, moraware: false, stonePro: true, stonify: true },
-  { feature: "Excel Import", fabricor: true, moraware: true, stonePro: false, stonify: false },
-  { feature: "Mobile Optimized", fabricor: true, moraware: false, stonePro: false, stonify: true },
-  { feature: "Weekly AI Reports", fabricor: true, moraware: false, stonePro: false, stonify: false },
-  { feature: "Institutional Memory", fabricor: true, moraware: false, stonePro: false, stonify: false },
+  { feature: "Job Pipeline", stonedesk: true, moraware: true, stonePro: true, stonify: true },
+  { feature: "Customer Database", stonedesk: true, moraware: true, stonePro: true, stonify: true },
+  { feature: "Scheduling", stonedesk: true, moraware: true, stonePro: false, stonify: true },
+  { feature: "Route Optimization", stonedesk: true, moraware: false, stonePro: false, stonify: false },
+  { feature: "AI Intelligence", stonedesk: true, moraware: false, stonePro: false, stonify: false },
+  { feature: "AI Email Generator", stonedesk: true, moraware: false, stonePro: false, stonify: false },
+  { feature: "2D Layout Tool", stonedesk: true, moraware: false, stonePro: false, stonify: false },
+  { feature: "Digital Signatures", stonedesk: true, moraware: false, stonePro: false, stonify: false },
+  { feature: "Price Estimator", stonedesk: true, moraware: false, stonePro: true, stonify: true },
+  { feature: "Excel Import", stonedesk: true, moraware: true, stonePro: false, stonify: false },
+  { feature: "Mobile Optimized", stonedesk: true, moraware: false, stonePro: false, stonify: true },
+  { feature: "Weekly AI Reports", stonedesk: true, moraware: false, stonePro: false, stonify: false },
+  { feature: "Institutional Memory", stonedesk: true, moraware: false, stonePro: false, stonify: false },
 ];
 
 const PLANS = [
@@ -41,7 +41,7 @@ export default function Landing() {
             <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center">
               <Zap size={16} className="text-black" />
             </div>
-            <span className="font-bold text-lg tracking-tight text-gray-900">FABRICOR</span>
+            <span className="font-bold text-lg tracking-tight text-gray-900">STONEDESK</span>
           </div>
           <div className="flex items-center gap-6">
             <a href="#features" className="text-gray-500 hover:text-gray-900 text-sm transition-colors hidden md:block">Features</a>
@@ -67,7 +67,7 @@ export default function Landing() {
             <span className="text-amber-500">smarter than ever.</span>
           </h1>
           <p className="text-gray-500 text-xl leading-relaxed max-w-2xl mx-auto mb-10">
-            Fabricor replaces Moraware, Stone Profit System, Stonify, and your spreadsheets with one AI-powered platform built for stone fabrication shops.
+            StoneDesk replaces Moraware, Stone Profit System, Stonify, and your spreadsheets with one AI-powered platform built for stone fabrication shops.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href="/login?register=true">
@@ -126,7 +126,7 @@ export default function Landing() {
           </div>
           <h2 className="text-4xl font-bold mb-4 text-white">Institutional Memory</h2>
           <p className="text-amber-50 text-xl leading-relaxed max-w-2xl mx-auto mb-6">
-            Fabricor remembers every job, every complaint, every praise, every employee — forever. Before your crew starts a high-value builder job, Claude briefs them: what went wrong last time, which templator caused issues, what the client is sensitive about.
+            StoneDesk remembers every job, every complaint, every praise, every employee — forever. Before your crew starts a high-value builder job, Claude briefs them: what went wrong last time, which templator caused issues, what the client is sensitive about.
           </p>
           <p className="text-amber-100 text-lg">No more institutional knowledge walking out the door when an employee leaves.</p>
         </div>
@@ -136,20 +136,20 @@ export default function Landing() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4 text-gray-900">How we compare</h2>
-            <p className="text-gray-500 text-lg">See why shops are switching from Moraware, Stone Profit System, and Stonify to Fabricor</p>
+            <p className="text-gray-500 text-lg">See why shops are switching from Moraware, Stone Profit System, and Stonify to StoneDesk</p>
           </div>
           <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
             <div className="grid grid-cols-5 gap-0 border-b border-gray-200 px-6 py-4 bg-gray-50">
               <div className="text-gray-500 text-sm font-mono uppercase">Feature</div>
-              <div className="text-amber-600 font-bold text-center text-sm">Fabricor</div>
+              <div className="text-amber-600 font-bold text-center text-sm">StoneDesk</div>
               <div className="text-gray-500 font-semibold text-center text-sm">Moraware</div>
               <div className="text-gray-500 font-semibold text-center text-sm">Stone Profit</div>
               <div className="text-gray-500 font-semibold text-center text-sm">Stonify</div>
             </div>
-            {COMPARISON.map(({ feature, fabricor, moraware, stonePro, stonify }) => (
+            {COMPARISON.map(({ feature, stonedesk, moraware, stonePro, stonify }) => (
               <div key={feature} className="grid grid-cols-5 gap-0 border-b border-gray-100 px-6 py-3 hover:bg-amber-50/30 transition-colors">
                 <div className="text-gray-700 text-sm font-medium">{feature}</div>
-                <div className="flex justify-center">{fabricor ? <CheckCircle size={18} className="text-emerald-500" /> : <X size={18} className="text-gray-300" />}</div>
+                <div className="flex justify-center">{stonedesk ? <CheckCircle size={18} className="text-emerald-500" /> : <X size={18} className="text-gray-300" />}</div>
                 <div className="flex justify-center">{moraware ? <CheckCircle size={18} className="text-gray-400" /> : <X size={18} className="text-gray-300" />}</div>
                 <div className="flex justify-center">{stonePro ? <CheckCircle size={18} className="text-gray-400" /> : <X size={18} className="text-gray-300" />}</div>
                 <div className="flex justify-center">{stonify ? <CheckCircle size={18} className="text-gray-400" /> : <X size={18} className="text-gray-300" />}</div>
@@ -206,7 +206,7 @@ export default function Landing() {
             {[1,2,3,4,5].map(i => <Star key={i} size={20} className="text-amber-400 fill-amber-400" />)}
           </div>
           <blockquote className="text-2xl font-medium text-gray-700 leading-relaxed mb-6">
-            "Fabricor flagged that one of our biggest builder accounts had recurring issues in the primary bath on their last two jobs. We caught it before the third install. That's $316/hr saved before we even walked in the door."
+            "StoneDesk flagged that one of our biggest builder accounts had recurring issues in the primary bath on their last two jobs. We caught it before the third install. That's $316/hr saved before we even walked in the door."
           </blockquote>
           <div className="text-gray-400">Stone Fabrication Shop Owner · Ohio</div>
         </div>
@@ -215,7 +215,7 @@ export default function Landing() {
       <section className="py-24 px-6 bg-amber-500">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-4xl font-bold mb-4 text-black">Ready to know your shop better?</h2>
-          <p className="text-amber-900 text-lg mb-8">Join the shops replacing Moraware, Stone Profit System, and Stonify with Fabricor. 14-day free trial, no card required.</p>
+          <p className="text-amber-900 text-lg mb-8">Join the shops replacing Moraware, Stone Profit System, and Stonify with StoneDesk. 14-day free trial, no card required.</p>
           <a href="/login?register=true">
             <a className="inline-flex items-center gap-2 bg-black hover:bg-gray-900 text-white font-bold px-8 py-4 rounded-xl text-lg transition-colors shadow-xl">
               Start Free Trial <ArrowRight size={20} />
@@ -230,7 +230,7 @@ export default function Landing() {
             <div className="w-6 h-6 bg-amber-500 rounded flex items-center justify-center">
               <Zap size={12} className="text-black" />
             </div>
-            <span className="font-bold text-sm text-gray-900">FABRICOR</span>
+            <span className="font-bold text-sm text-gray-900">STONEDESK</span>
             <span className="text-gray-400 text-sm">by SAIRN Technologies</span>
           </div>
           <div className="flex gap-6 text-gray-400 text-sm">

@@ -105,9 +105,9 @@ async function sendWeeklyReport() {
         } catch (e) { console.log("Claude insight failed:", e); }
       }
       const healthScore = Math.max(0, Math.min(100, 100 - (weekIssues.length * 5) - (remakes * 10)));
-      const emailHtml = `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#0a0a0f;font-family:Arial,sans-serif;color:#e4e4e7;"><div style="max-width:600px;margin:0 auto;padding:40px 20px;"><div style="background:#f59e0b;display:inline-block;padding:8px 16px;border-radius:8px;margin-bottom:16px;"><span style="color:#000;font-weight:bold;font-size:18px;">⚡ FABRICOR</span></div><h1 style="color:#fff;font-size:24px;margin:0 0 8px;">Weekly Shop Report</h1><p style="color:#71717a;margin:0 0 24px;">Week ${prevWeek}, ${prevYear} · ${user.shopName || "Your Shop"}</p><div style="background:#0d0d14;border:1px solid #27272a;border-radius:16px;padding:24px;margin-bottom:16px;text-align:center;"><div style="display:inline-block;margin:0 20px;"><div style="color:#f59e0b;font-size:32px;font-weight:bold;">${healthScore}</div><div style="color:#71717a;font-size:12px;">Health Score</div></div><div style="display:inline-block;margin:0 20px;"><div style="color:#ef4444;font-size:32px;font-weight:bold;">${weekIssues.length}</div><div style="color:#71717a;font-size:12px;">Issues</div></div><div style="display:inline-block;margin:0 20px;"><div style="color:#f59e0b;font-size:32px;font-weight:bold;">$${totalImpact.toFixed(0)}</div><div style="color:#71717a;font-size:12px;">Impact</div></div></div><div style="background:#1a0a00;border:1px solid #78350f;border-radius:16px;padding:24px;margin-bottom:24px;"><div style="color:#f59e0b;font-weight:bold;margin-bottom:8px;">🧠 Claude Analysis</div><p style="color:#d4d4d8;line-height:1.6;margin:0;">${aiInsight}</p></div><div style="text-align:center;"><a href="https://fabricor-production.up.railway.app" style="background:#f59e0b;color:#000;font-weight:bold;padding:12px 32px;border-radius:8px;text-decoration:none;display:inline-block;">Open Fabricor</a></div><p style="color:#3f3f46;font-size:12px;text-align:center;margin-top:24px;">Fabricor by SAIRN Technologies · Every Monday 7am ET</p></div></body></html>`;
+      const emailHtml = `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#0a0a0f;font-family:Arial,sans-serif;color:#e4e4e7;"><div style="max-width:600px;margin:0 auto;padding:40px 20px;"><div style="background:#f59e0b;display:inline-block;padding:8px 16px;border-radius:8px;margin-bottom:16px;"><span style="color:#000;font-weight:bold;font-size:18px;">⚡ STONEDESK</span></div><h1 style="color:#fff;font-size:24px;margin:0 0 8px;">Weekly Shop Report</h1><p style="color:#71717a;margin:0 0 24px;">Week ${prevWeek}, ${prevYear} · ${user.shopName || "Your Shop"}</p><div style="background:#0d0d14;border:1px solid #27272a;border-radius:16px;padding:24px;margin-bottom:16px;text-align:center;"><div style="display:inline-block;margin:0 20px;"><div style="color:#f59e0b;font-size:32px;font-weight:bold;">${healthScore}</div><div style="color:#71717a;font-size:12px;">Health Score</div></div><div style="display:inline-block;margin:0 20px;"><div style="color:#ef4444;font-size:32px;font-weight:bold;">${weekIssues.length}</div><div style="color:#71717a;font-size:12px;">Issues</div></div><div style="display:inline-block;margin:0 20px;"><div style="color:#f59e0b;font-size:32px;font-weight:bold;">$${totalImpact.toFixed(0)}</div><div style="color:#71717a;font-size:12px;">Impact</div></div></div><div style="background:#1a0a00;border:1px solid #78350f;border-radius:16px;padding:24px;margin-bottom:24px;"><div style="color:#f59e0b;font-weight:bold;margin-bottom:8px;">🧠 Claude Analysis</div><p style="color:#d4d4d8;line-height:1.6;margin:0;">${aiInsight}</p></div><div style="text-align:center;"><a href="https://fabricor-production.up.railway.app" style="background:#f59e0b;color:#000;font-weight:bold;padding:12px 32px;border-radius:8px;text-decoration:none;display:inline-block;">Open StoneDesk</a></div><p style="color:#3f3f46;font-size:12px;text-align:center;margin-top:24px;">StoneDesk by SAIRN Technologies · Every Monday 7am ET</p></div></body></html>`;
       await resend.emails.send({
-        from: "Fabricor <reports@sairn.com>",
+        from: "StoneDesk <reports@sairn.com>",
         to: user.email,
         subject: `Week ${prevWeek} Report — ${weekIssues.length} issues, $${totalImpact.toFixed(0)} impact`,
         html: emailHtml,
@@ -331,7 +331,7 @@ app.post("/api/claude/chat", requireAuth, async (req, res) => {
       const topRootCauses = recentIssues.reduce((acc: Record<string, number>, i) => { acc[i.rootCause] = (acc[i.rootCause] || 0) + 1; return acc; }, {});
       shopContext = `SHOP CONTEXT FOR ${user?.shopName || "This Shop"} (Week ${week}, ${year}):\n- Recent issues: ${recentIssues.length} total, ${remakeCount} remakes\n- Total impact: $${totalImpact.toFixed(0)}\n- Top root causes: ${Object.entries(topRootCauses).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => `${k}(${v})`).join(", ")}\n- Labor: $${settings?.laborCostPerHour || 66}/hr`;
     }
-    const systemPrompt = `You are Fabricor's AI intelligence layer — a stone fabrication business analyst.\n\n${shopContext}\n\nBe direct, specific, and actionable.`;
+    const systemPrompt = `You are StoneDesk's AI intelligence layer — a stone fabrication business analyst.\n\n${shopContext}\n\nBe direct, specific, and actionable.`;
     const response = await fetch("https://sairn.vercel.app/api/claude", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1500, system: systemPrompt, messages }),
@@ -639,10 +639,10 @@ app.post("/api/admin/send-test-email", requireAuth, async (req, res) => {
     const targetEmail = process.env.ADMIN_EMAIL_NOTIFY || process.env.ADMIN_EMAIL || "mikied68@gmail.com";
     console.log("Sending test email to:", targetEmail);
     const result = await resend.emails.send({
-      from: "Fabricor <reports@sairn.com>",
+      from: "StoneDesk <reports@sairn.com>",
       to: targetEmail,
-      subject: "Fabricor Test Email ⚡",
-      html: "<div style='font-family:Arial;padding:40px;background:#0a0a0f;color:#e4e4e7;'><h1 style='color:#f59e0b'>⚡ FABRICOR</h1><p>Your weekly reports are configured correctly!</p><p style='color:#71717a;font-size:12px;'>Sent from reports@sairn.com via Resend</p></div>",
+      subject: "StoneDesk Test Email ⚡",
+      html: "<div style='font-family:Arial;padding:40px;background:#0a0a0f;color:#e4e4e7;'><h1 style='color:#f59e0b'>⚡ STONEDESK</h1><p>Your weekly reports are configured correctly!</p><p style='color:#71717a;font-size:12px;'>Sent from reports@sairn.com via Resend</p></div>",
     });
     console.log("Resend result:", JSON.stringify(result));
     res.json({ ok: true, result, email: targetEmail });
@@ -718,7 +718,7 @@ app.delete("/api/inventory/:id", requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: "Failed to delete slab" }); }
 });
 app.listen(PORT, "0.0.0.0", async () => {
-  console.log(`Fabricor API running on port ${PORT}`);
+  console.log(`StoneDesk API running on port ${PORT}`);
   await seedAdmin();
 });
 

@@ -48,7 +48,7 @@ function AppContent() {
     <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
       <div className="text-center">
         <div className="w-12 h-12 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-zinc-500 font-mono text-sm">Loading Fabricor...</p>
+        <p className="text-zinc-500 font-mono text-sm">Loading StoneDesk...</p>
       </div>
     </div>
   );
@@ -100,7 +100,7 @@ function AppContent() {
               <Zap size={16} className="text-black" />
             </div>
             <div>
-              <div className="text-white font-bold text-lg tracking-tight leading-none">FABRICOR</div>
+              <div className="text-white font-bold text-lg tracking-tight leading-none">STONEDESK</div>
               <div className="text-zinc-500 text-xs font-mono mt-0.5">Stone Intelligence</div>
             </div>
           </div>

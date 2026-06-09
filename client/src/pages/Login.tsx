@@ -43,7 +43,7 @@ export default function Login() {
             <Zap size={20} className="text-black" />
           </div>
           <div>
-            <div className="text-white font-bold text-xl tracking-tight">FABRICOR</div>
+            <div className="text-white font-bold text-xl tracking-tight">STONEDESK</div>
             <div className="text-zinc-500 text-xs font-mono">Stone Intelligence Platform</div>
           </div>
         </div>
@@ -73,7 +73,7 @@ export default function Login() {
         </div>
 
         <div className="text-zinc-700 text-sm font-mono">
-          SAIRN Technologies · Fabricor v2.0
+          SAIRN Technologies · StoneDesk v2.0
         </div>
       </div>
 
@@ -83,7 +83,7 @@ export default function Login() {
             <div className="w-9 h-9 bg-amber-500 rounded-lg flex items-center justify-center">
               <Zap size={17} className="text-black" />
             </div>
-            <div className="text-white font-bold text-lg">FABRICOR</div>
+            <div className="text-white font-bold text-lg">STONEDESK</div>
           </div>
 
           <h1 className="text-2xl font-bold text-white mb-1">
