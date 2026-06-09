@@ -544,3 +544,27 @@ app.post("/api/claude/generate-email", requireAuth, async (req, res) => {
     res.json({ subject, body });
   } catch (e) { res.status(500).json({ error: "Email generation failed" }); }
 });
+
+app.post("/api/optimize-route", requireAuth, async (req, res) => {
+  try {
+    const { stops } = req.body;
+    if (!stops || stops.length < 2) return res.json({ optimizedOrder: stops.map((s: any) => s.id), totalDriveMinutes: 0 });
+    const apiKey = process.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) return res.json({ optimizedOrder: stops.map((s: any) => s.id), totalDriveMinutes: 0 });
+    const origin = encodeURIComponent(`${stops[0].address} ${stops[0].city} ${stops[0].state}`);
+    const destination = encodeURIComponent(`${stops[stops.length - 1].address} ${stops[stops.length - 1].city} ${stops[stops.length - 1].state}`);
+    const waypoints = stops.slice(1, -1).map((s: any) => encodeURIComponent(`${s.address} ${s.city} ${s.state}`)).join("|");
+    const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}${waypoints ? `&waypoints=optimize:true|${waypoints}` : ""}&key=${apiKey}`;
+    const geoRes = await fetch(url);
+    const data = await geoRes.json();
+    if (data.status !== "OK") return res.json({ optimizedOrder: stops.map((s: any) => s.id), totalDriveMinutes: 0 });
+    const order = data.routes[0].waypoint_order;
+    const middle = stops.slice(1, -1);
+    const reordered = [stops[0], ...order.map((i: number) => middle[i]), stops[stops.length - 1]];
+    const totalSeconds = data.routes[0].legs.reduce((sum: number, leg: any) => sum + leg.duration.value, 0);
+    res.json({ optimizedOrder: reordered.map((s: any) => s.id), totalDriveMinutes: Math.round(totalSeconds / 60) });
+  } catch (e) {
+    console.error("Route optimization error:", e);
+    res.json({ optimizedOrder: req.body.stops.map((s: any) => s.id), totalDriveMinutes: 0 });
+  }
+});
