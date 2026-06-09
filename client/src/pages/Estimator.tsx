@@ -61,6 +61,8 @@ export default function Estimator() {
   const [edges, setEdges] = useState<EdgeItem[]>([]);
   const [cutouts, setCutouts] = useState<CutoutItem[]>([]);
   const [margin, setMargin] = useState(45);
+  const [slabWidth, setSlabWidth] = useState(63);
+  const [slabHeight, setSlabHeight] = useState(126);
   const [copied, setCopied] = useState(false);
   const [aiSummary, setAiSummary] = useState("");
   const [loadingAI, setLoadingAI] = useState(false);
@@ -75,6 +77,11 @@ export default function Estimator() {
   const marginAmount = subtotal / (1 - margin / 100) - subtotal;
   const total = subtotal + marginAmount;
   const pricePerSqft = totalSqft > 0 ? total / totalSqft : 0;
+  const slabSqft = (slabWidth * slabHeight) / 144;
+  const slabsNeeded = totalSqft > 0 ? Math.ceil((totalSqft * 1.15) / slabSqft) : 0;
+  const wasteSqft = slabsNeeded > 0 ? (slabsNeeded * slabSqft) - totalSqft : 0;
+  const wastePercent = slabsNeeded > 0 ? ((wasteSqft / (slabsNeeded * slabSqft)) * 100).toFixed(1) : 0;
+  const wasteCost = wasteSqft * (stonePrice || 10);
 
   const addLineItem = () => {
     setLineItems(items => [...items, { id: Date.now().toString(), area: "", sqft: 0, pricePerSqft: stonePrice }]);
@@ -355,6 +362,27 @@ ${aiSummary ? `\nNOTES:\n${aiSummary}` : ""}`;
               <div className="text-zinc-400 text-xs font-mono uppercase mb-1">Total Estimate</div>
               <div className="text-amber-400 font-mono text-3xl font-bold">${total.toFixed(2)}</div>
               <div className="text-zinc-500 text-xs mt-1">${pricePerSqft.toFixed(2)}/sqft installed</div>
+            </div>
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-4">
+              <div className="text-zinc-400 text-xs font-mono uppercase mb-3">Material Waste Calculator</div>
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <div>
+                  <div className="text-zinc-500 text-xs mb-1">Slab Width (in)</div>
+                  <input type="number" value={slabWidth} onChange={e => setSlabWidth(+e.target.value)}
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1.5 text-white font-mono text-sm focus:outline-none focus:border-amber-500" />
+                </div>
+                <div>
+                  <div className="text-zinc-500 text-xs mb-1">Slab Height (in)</div>
+                  <input type="number" value={slabHeight} onChange={e => setSlabHeight(+e.target.value)}
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1.5 text-white font-mono text-sm focus:outline-none focus:border-amber-500" />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs"><span className="text-zinc-500">Slab size</span><span className="text-zinc-300 font-mono">{slabSqft.toFixed(1)} sf</span></div>
+                <div className="flex justify-between text-xs"><span className="text-zinc-500">Slabs needed</span><span className="text-zinc-300 font-mono">{slabsNeeded} slabs</span></div>
+                <div className="flex justify-between text-xs"><span className="text-zinc-500">Waste</span><span className="text-red-400 font-mono">{wasteSqft.toFixed(1)} sf ({wastePercent}%)</span></div>
+                <div className="flex justify-between text-xs border-t border-zinc-800 pt-1.5"><span className="text-zinc-500">Waste cost</span><span className="text-red-400 font-mono font-bold">${wasteCost.toFixed(2)}</span></div>
+              </div>
             </div>
             <button onClick={generateSummary} disabled={loadingAI}
               className="w-full bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-zinc-300 rounded-lg py-2.5 text-sm flex items-center justify-center gap-2 mb-2">
