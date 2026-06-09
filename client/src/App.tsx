@@ -18,6 +18,9 @@ import Team from "./pages/Team";
 import Leads from "./pages/Leads";
 import InstallerView from "./pages/InstallerView";
 import Analytics from "./pages/Analytics";
+import Remnants from "./pages/Remnants";
+import CareGuide from "./pages/CareGuide";
+import TaxCredits from "./pages/TaxCredits";
 import Inventory from "./pages/Inventory";
 import QuickBooks from "./pages/QuickBooks";
 import Billing from "./pages/Billing";
@@ -26,7 +29,7 @@ import Import from "./pages/Import";
 import { Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
 import Login from "./pages/Login";
 import MobileNav from "./components/MobileNav";
-import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield, Sparkles, BarChart2,
+import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield, Sparkles, BarChart2, Package, DollarSign,
   LayoutDashboard, AlertTriangle, Users, TrendingUp,
   Brain, Settings as SettingsIcon, LogOut,
   ChevronRight, Activity, Zap, Briefcase, Calendar
@@ -86,6 +89,9 @@ function AppContent() {
     { href: "/team", icon: Users, label: "Team", desc: "Manage team members" },
     { href: "/leads", icon: TrendingUp, label: "Leads", desc: "Lead management" },
     { href: "/analytics", icon: BarChart2, label: "Analytics", desc: "Shop analytics" },
+    { href: "/remnants", icon: Package, label: "Remnants", desc: "Remnant tracker" },
+    { href: "/care", icon: BookOpen, label: "Care Guides", desc: "Stone care guides" },
+    { href: "/tax", icon: DollarSign, label: "Tax Credits", desc: "Tax credit tracker" },
     { href: "/resources", icon: Users, label: "Resources", desc: "Team productivity" },
     { href: "/sales", icon: TrendingUp, label: "Sales", desc: "Rep performance" },
     { href: "/pricebook", icon: BookOpen, label: "Price Book", desc: "Pricing & costs" },
@@ -189,6 +195,9 @@ function AppContent() {
           <Route path="/team" component={Team} />
           <Route path="/leads" component={Leads} />
           <Route path="/analytics" component={Analytics} />
+          <Route path="/remnants" component={Remnants} />
+          <Route path="/care" component={CareGuide} />
+          <Route path="/tax" component={TaxCredits} />
           <Route path="/installer" component={InstallerView} />
           <Route path="/landing" component={Landing} />
           <Route path="/resources" component={Resources} />
