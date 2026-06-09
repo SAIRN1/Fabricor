@@ -15,7 +15,7 @@ import {
   users, issues, weeklyReports, resourceActivities,
   salesEntries, priceBookItems, costSettings, industryBenchmarks,
   claudeConversations, customers, jobs, jobPhases, jobFeedback,
-  scheduleStops, aiEmails,
+  scheduleStops, aiEmails, slabInventory,
   calculateTotalInternalCost, calculateOpportunityCost, calculateTotalImpact,
   getWeekNumber, BUSINESS_CONSTANTS
 } from "../shared/schema.js";
@@ -673,3 +673,34 @@ app.listen(PORT, "0.0.0.0", async () => {
 });
 
 export default app;
+app.get("/api/inventory", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const items = await db.select().from(slabInventory).where(eq(slabInventory.userId, userId)).orderBy(desc(slabInventory.createdAt));
+    res.json(items);
+  } catch (e) { res.json([]); }
+});
+
+app.post("/api/inventory", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const [item] = await db.insert(slabInventory).values({ ...req.body, userId }).returning();
+    res.json(item);
+  } catch (e) { res.status(500).json({ error: "Failed to add slab" }); }
+});
+
+app.patch("/api/inventory/:id", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const [item] = await db.update(slabInventory).set({ ...req.body, updatedAt: new Date() }).where(and(eq(slabInventory.id, req.params.id), eq(slabInventory.userId, userId))).returning();
+    res.json(item);
+  } catch (e) { res.status(500).json({ error: "Failed to update slab" }); }
+});
+
+app.delete("/api/inventory/:id", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    await db.delete(slabInventory).where(and(eq(slabInventory.id, req.params.id), eq(slabInventory.userId, userId)));
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: "Failed to delete slab" }); }
+});

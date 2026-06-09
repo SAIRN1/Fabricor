@@ -344,3 +344,26 @@ export type JobPhase = typeof jobPhases.$inferSelect;
 export type JobFeedback = typeof jobFeedback.$inferSelect;
 export type ScheduleStop = typeof scheduleStops.$inferSelect;
 export type AiEmail = typeof aiEmails.$inferSelect;
+
+export const slabInventory = pgTable("slab_inventory", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  stoneType: varchar("stone_type", { length: 100 }).notNull(),
+  color: varchar("color", { length: 200 }).notNull(),
+  supplier: varchar("supplier", { length: 200 }),
+  lotNumber: varchar("lot_number", { length: 100 }),
+  bundleNumber: varchar("bundle_number", { length: 100 }),
+  lengthInches: numeric("length_inches"),
+  widthInches: numeric("width_inches"),
+  sqft: numeric("sqft"),
+  thickness: varchar("thickness", { length: 20 }),
+  finish: varchar("finish", { length: 50 }),
+  costPerSqFt: numeric("cost_per_sq_ft"),
+  totalCost: numeric("total_cost"),
+  yardLocation: varchar("yard_location", { length: 200 }),
+  jobAllocated: varchar("job_allocated", { length: 200 }),
+  status: varchar("status", { length: 50 }).default("available"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
