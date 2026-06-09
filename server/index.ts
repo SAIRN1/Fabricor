@@ -577,9 +577,9 @@ const resend = new Resend(process.env.RESEND_API_KEY || "placeholder");
 async function sendWeeklyReport() {
   try {
     const adminEmail = process.env.ADMIN_EMAIL_NOTIFY || process.env.ADMIN_EMAIL;
-    if (!adminEmail) return;
-    const allUsers = await db.select().from(users).where(eq(users.role, "admin"));
-    for (const user of allUsers) {
+    const adminEmail = process.env.ADMIN_EMAIL_NOTIFY || process.env.ADMIN_EMAIL;
+    if (!adminEmail) { console.log("No admin email configured"); return; }
+    console.log("Sending weekly report to:", adminEmail);
       const { week, year } = getWeekNumber(new Date());
       const prevWeek = week > 1 ? week - 1 : 52;
       const prevYear = week > 1 ? year : year - 1;
@@ -719,4 +719,22 @@ app.post("/api/billing/webhook", express.raw({ type: "application/json" }), asyn
     }
     res.json({ received: true });
   } catch (e) { res.status(400).json({ error: "Webhook failed" }); }
+});
+
+app.post("/api/admin/send-test-email", requireAuth, async (req, res) => {
+  try {
+    const targetEmail = process.env.ADMIN_EMAIL_NOTIFY || process.env.ADMIN_EMAIL || "mikied68@gmail.com";
+    console.log("Sending direct test to:", targetEmail);
+    const result = await resend.emails.send({
+      from: "Fabricor <reports@sairn.com>",
+      to: targetEmail,
+      subject: "Fabricor Test Email",
+      html: "<h1 style='color:#f59e0b'>Fabricor is working!</h1><p>Your weekly reports are configured correctly.</p>",
+    });
+    console.log("Resend result:", JSON.stringify(result));
+    res.json({ ok: true, result, email: targetEmail });
+  } catch (e) {
+    console.error("Direct email error:", e);
+    res.status(500).json({ error: String(e) });
+  }
 });
