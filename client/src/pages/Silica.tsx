@@ -260,7 +260,6 @@ export default function Silica() {
                     </button>
                   </td>
                   <td className="px-5 py-3">
-                  <td className="px-5 py-3">
                     <button onClick={() => deleteMutation.mutate(record.id)} className="text-zinc-600 hover:text-red-400 transition-colors">
                       <X size={14} />
                     </button>
