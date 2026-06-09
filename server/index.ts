@@ -572,7 +572,7 @@ app.post("/api/optimize-route", requireAuth, async (req, res) => {
 import cron from "node-cron";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY || "placeholder");
 
 async function sendWeeklyReport() {
   try {
