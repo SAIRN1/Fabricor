@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, X, Briefcase, ChevronRight, PenLine } from "lucide-react";
 import SignatureModal from "./../components/SignatureModal";
 import PhotoUpload from "./../components/PhotoUpload";
+import JobNotes from "./../components/JobNotes";
 
 const STAGES = [
   { key: "inquiry", label: "Inquiry", color: "border-zinc-600 text-zinc-400" },
@@ -303,6 +304,7 @@ export default function Jobs() {
               <div className="flex gap-2 mb-3">
               <button onClick={() => setShowSig(true)} className="flex-1 flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg py-2.5 text-sm"><PenLine size={14} /> Get Signature</button>
               {selected && <PhotoUpload jobId={selected.id} />}
+              {selected && <JobNotes jobId={selected.id} />}
             </div>
             {selected.stage !== "complete" && (
                 <button onClick={() => { advanceStage(selected); setSelected(null); }}
