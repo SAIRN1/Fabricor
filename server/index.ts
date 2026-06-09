@@ -8,8 +8,11 @@ import { eq, and, desc, sql } from "drizzle-orm";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { existsSync } from "fs";
+import cron from "node-cron";
+import { Resend } from "resend";
+import Stripe from "stripe";
 import {
-  users, sessions, issues, weeklyReports, resourceActivities,
+  users, issues, weeklyReports, resourceActivities,
   salesEntries, priceBookItems, costSettings, industryBenchmarks,
   claudeConversations, customers, jobs, jobPhases, jobFeedback,
   scheduleStops, aiEmails,
@@ -24,6 +27,14 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL || "postgresql://postgres:password@localhost:5432/fabricor",
 });
 const db = drizzle(pool);
+const resend = new Resend(process.env.RESEND_API_KEY || "placeholder");
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", { apiVersion: "2024-06-20" });
+
+const STRIPE_PRICES: Record<string, string> = {
+  starter: process.env.STRIPE_PRICE_STARTER || "price_starter",
+  professional: process.env.STRIPE_PRICE_PROFESSIONAL || "price_professional",
+  enterprise: process.env.STRIPE_PRICE_ENTERPRISE || "price_enterprise",
+};
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: "10mb" }));
@@ -68,6 +79,42 @@ async function seedAdmin() {
       ]);
     }
   } catch (e) { console.log("Seed skipped:", (e as Error).message); }
+}
+
+async function sendWeeklyReport() {
+  try {
+    const allUsers = await db.select().from(users).where(eq(users.role, "admin"));
+    for (const user of allUsers) {
+      const { week, year } = getWeekNumber(new Date());
+      const prevWeek = week > 1 ? week - 1 : 52;
+      const prevYear = week > 1 ? year : year - 1;
+      const weekIssues = await db.select().from(issues).where(and(eq(issues.userId, user.id), eq(issues.weekNumber, prevWeek), eq(issues.year, prevYear)));
+      const totalImpact = weekIssues.reduce((s, i) => s + (i.totalImpact || 0), 0);
+      const remakes = weekIssues.filter(i => i.issueType === "remake").length;
+      const byRootCause = weekIssues.reduce((acc: Record<string, number>, i) => { acc[i.rootCause] = (acc[i.rootCause] || 0) + 1; return acc; }, {});
+      const topCause = Object.entries(byRootCause).sort((a, b) => b[1] - a[1])[0];
+      let aiInsight = "No issues logged last week — great job!";
+      if (weekIssues.length > 0) {
+        try {
+          const r = await fetch("https://sairn.vercel.app/api/claude", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 300, messages: [{ role: "user", content: `Weekly summary: ${weekIssues.length} issues, $${totalImpact.toFixed(0)} impact, ${remakes} remakes. Top cause: ${topCause?.[0]}. Write 2-3 sentences with one action item.` }] }),
+          });
+          const data = await r.json();
+          aiInsight = data.content?.[0]?.text || aiInsight;
+        } catch (e) { console.log("Claude insight failed:", e); }
+      }
+      const healthScore = Math.max(0, Math.min(100, 100 - (weekIssues.length * 5) - (remakes * 10)));
+      const emailHtml = `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#0a0a0f;font-family:Arial,sans-serif;color:#e4e4e7;"><div style="max-width:600px;margin:0 auto;padding:40px 20px;"><div style="background:#f59e0b;display:inline-block;padding:8px 16px;border-radius:8px;margin-bottom:16px;"><span style="color:#000;font-weight:bold;font-size:18px;">⚡ FABRICOR</span></div><h1 style="color:#fff;font-size:24px;margin:0 0 8px;">Weekly Shop Report</h1><p style="color:#71717a;margin:0 0 24px;">Week ${prevWeek}, ${prevYear} · ${user.shopName || "Your Shop"}</p><div style="background:#0d0d14;border:1px solid #27272a;border-radius:16px;padding:24px;margin-bottom:16px;text-align:center;"><div style="display:inline-block;margin:0 20px;"><div style="color:#f59e0b;font-size:32px;font-weight:bold;">${healthScore}</div><div style="color:#71717a;font-size:12px;">Health Score</div></div><div style="display:inline-block;margin:0 20px;"><div style="color:#ef4444;font-size:32px;font-weight:bold;">${weekIssues.length}</div><div style="color:#71717a;font-size:12px;">Issues</div></div><div style="display:inline-block;margin:0 20px;"><div style="color:#f59e0b;font-size:32px;font-weight:bold;">$${totalImpact.toFixed(0)}</div><div style="color:#71717a;font-size:12px;">Impact</div></div></div><div style="background:#1a0a00;border:1px solid #78350f;border-radius:16px;padding:24px;margin-bottom:24px;"><div style="color:#f59e0b;font-weight:bold;margin-bottom:8px;">🧠 Claude Analysis</div><p style="color:#d4d4d8;line-height:1.6;margin:0;">${aiInsight}</p></div><div style="text-align:center;"><a href="https://fabricor-production.up.railway.app" style="background:#f59e0b;color:#000;font-weight:bold;padding:12px 32px;border-radius:8px;text-decoration:none;display:inline-block;">Open Fabricor</a></div><p style="color:#3f3f46;font-size:12px;text-align:center;margin-top:24px;">Fabricor by SAIRN Technologies · Every Monday 7am ET</p></div></body></html>`;
+      await resend.emails.send({
+        from: "Fabricor <reports@sairn.com>",
+        to: user.email,
+        subject: `Week ${prevWeek} Report — ${weekIssues.length} issues, $${totalImpact.toFixed(0)} impact`,
+        html: emailHtml,
+      });
+      console.log("Weekly report sent to:", user.email);
+    }
+  } catch (e) { console.error("Weekly report error:", e); }
 }
 
 app.post("/api/auth/login", async (req, res) => {
@@ -225,14 +272,6 @@ app.post("/api/pricebook", requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: "Failed to create price book item" }); }
 });
 
-app.patch("/api/pricebook/:id", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.session as any).userId;
-    const [item] = await db.update(priceBookItems).set(req.body).where(and(eq(priceBookItems.id, req.params.id), eq(priceBookItems.userId, userId))).returning();
-    res.json(item);
-  } catch (e) { res.status(500).json({ error: "Failed to update price book item" }); }
-});
-
 app.delete("/api/pricebook/:id", requireAuth, async (req, res) => {
   try {
     const userId = (req.session as any).userId;
@@ -260,13 +299,6 @@ app.patch("/api/settings/costs", requireAuth, async (req, res) => {
     const [s] = await db.update(costSettings).set({ ...req.body, updatedAt: new Date() }).where(eq(costSettings.userId, userId)).returning();
     res.json(s);
   } catch (e) { res.status(500).json({ error: "Failed to update settings" }); }
-});
-
-app.get("/api/benchmarks", requireAuth, async (req, res) => {
-  try {
-    const benchmarks = await db.select().from(industryBenchmarks);
-    res.json(benchmarks);
-  } catch (e) { res.status(500).json({ error: "Failed to fetch benchmarks" }); }
 });
 
 app.get("/api/analytics/trends", requireAuth, async (req, res) => {
@@ -328,6 +360,49 @@ app.post("/api/claude/analyze-issues", requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: "Analysis failed" }); }
 });
 
+app.post("/api/claude/generate-email", requireAuth, async (req, res) => {
+  try {
+    const { emailType, customerName, jobName, scheduledDate, stoneType, areas, salesRep, shopName, customPrompt } = req.body;
+    const prompts: Record<string, string> = {
+      template_confirmation: `Write a professional but warm email confirming a stone countertop template appointment. Shop: ${shopName || "our shop"}. Customer: ${customerName}. Job: ${jobName}. Date: ${scheduledDate}. Stone: ${stoneType}. Areas: ${areas}. Rep: ${salesRep}. Include what to expect during the template, how long it takes, and ask them to have the space cleared.`,
+      installation_confirmation: `Write a professional but warm email confirming a stone countertop installation. Shop: ${shopName || "our shop"}. Customer: ${customerName}. Job: ${jobName}. Date: ${scheduledDate}. Stone: ${stoneType}. Areas: ${areas}. Include what to expect, how long it takes, plumbing reconnect info, and care instructions.`,
+      completion_followup: `Write a warm thank you email after completing a stone countertop installation. Shop: ${shopName || "our shop"}. Customer: ${customerName}. Job: ${jobName}. Stone: ${stoneType}. Areas: ${areas}. Include care and maintenance tips, invite questions, and ask for a Google review.`,
+      dispute_letter: `Write a professional dispute resolution email. Shop: ${shopName || "our shop"}. Customer: ${customerName}. Job: ${jobName}. Be empathetic, outline steps to resolve the issue, provide a clear timeline.`,
+      estimate: `Write a formal estimate email. Shop: ${shopName || "our shop"}. Customer: ${customerName}. Job: ${jobName}. Stone: ${stoneType}. Areas: ${areas}. Rep: ${salesRep}. Include project scope, 30-day validity, next steps.`,
+      custom: customPrompt || "Write a professional email for a stone fabrication shop.",
+    };
+    const response = await fetch("https://sairn.vercel.app/api/claude", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 800, system: "You are an expert email writer for a stone fabrication shop. Professional but warm. Always start with 'Subject: [subject]' on its own line, then blank line, then body.", messages: [{ role: "user", content: prompts[emailType] || prompts.custom }] }),
+    });
+    const data = await response.json();
+    const text = data.content?.[0]?.text || "";
+    const lines = text.split("\n");
+    const subjectLine = lines.find((l: string) => l.startsWith("Subject:")) || "Subject: Regarding Your Project";
+    const subject = subjectLine.replace("Subject:", "").trim();
+    const body = lines.slice(lines.indexOf(subjectLine) + 2).join("\n").trim();
+    res.json({ subject, body });
+  } catch (e) { res.status(500).json({ error: "Email generation failed" }); }
+});
+
+app.post("/api/claude/customer-briefing", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const { customerId } = req.body;
+    const [customer] = await db.select().from(customers).where(and(eq(customers.id, customerId), eq(customers.userId, userId))).limit(1);
+    if (!customer) return res.status(404).json({ error: "Customer not found" });
+    const customerJobs = await db.select().from(jobs).where(and(eq(jobs.customerId, customerId), eq(jobs.userId, userId))).orderBy(desc(jobs.createdAt)).limit(20);
+    const feedback = await db.select().from(jobFeedback).where(eq(jobFeedback.customerId, customerId)).orderBy(desc(jobFeedback.createdAt)).limit(10);
+    const prompt = `Stone fabrication pre-job briefing for ${customer.firstName} ${customer.lastName} (${customer.customerType}${customer.company ? `, ${customer.company}` : ""}). Jobs: ${customer.totalJobs || 0}, Revenue: $${customer.totalRevenue || 0}, Praise: ${customer.praiseCount || 0}, Complaints: ${customer.complaintCount || 0}. Notes: ${customer.notes || "None"}. Recent jobs: ${customerJobs.map(j => `${j.jobName}(${j.stage})`).join(", ") || "None"}. Feedback: ${feedback.map(f => `${f.feedbackType}: ${f.description}`).join("; ") || "None"}. Give 3-4 sentence briefing with specific recommendations.`;
+    const response = await fetch("https://sairn.vercel.app/api/claude", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 500, messages: [{ role: "user", content: prompt }] }),
+    });
+    const data = await response.json();
+    res.json({ briefing: data.content?.[0]?.text || "Could not generate briefing." });
+  } catch (e) { res.status(500).json({ error: "Briefing failed" }); }
+});
+
 app.get("/api/customers", requireAuth, async (req, res) => {
   try {
     const userId = (req.session as any).userId;
@@ -350,24 +425,6 @@ app.patch("/api/customers/:id", requireAuth, async (req, res) => {
     const [customer] = await db.update(customers).set({ ...req.body, updatedAt: new Date() }).where(and(eq(customers.id, req.params.id), eq(customers.userId, userId))).returning();
     res.json(customer);
   } catch (e) { res.status(500).json({ error: "Failed to update customer" }); }
-});
-
-app.post("/api/claude/customer-briefing", requireAuth, async (req, res) => {
-  try {
-    const userId = (req.session as any).userId;
-    const { customerId } = req.body;
-    const [customer] = await db.select().from(customers).where(and(eq(customers.id, customerId), eq(customers.userId, userId))).limit(1);
-    if (!customer) return res.status(404).json({ error: "Customer not found" });
-    const customerJobs = await db.select().from(jobs).where(and(eq(jobs.customerId, customerId), eq(jobs.userId, userId))).orderBy(desc(jobs.createdAt)).limit(20);
-    const feedback = await db.select().from(jobFeedback).where(eq(jobFeedback.customerId, customerId)).orderBy(desc(jobFeedback.createdAt)).limit(10);
-    const prompt = `Stone fabrication pre-job briefing for ${customer.firstName} ${customer.lastName} (${customer.customerType}${customer.company ? `, ${customer.company}` : ""}). Jobs: ${customer.totalJobs || 0}, Revenue: $${customer.totalRevenue || 0}, Praise: ${customer.praiseCount || 0}, Complaints: ${customer.complaintCount || 0}. Notes: ${customer.notes || "None"}. Recent jobs: ${customerJobs.map(j => `${j.jobName}(${j.stage})`).join(", ") || "None"}. Feedback: ${feedback.map(f => `${f.feedbackType}: ${f.description}`).join("; ") || "None"}. Give 3-4 sentence briefing with specific recommendations.`;
-    const response = await fetch("https://sairn.vercel.app/api/claude", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 500, messages: [{ role: "user", content: prompt }] }),
-    });
-    const data = await response.json();
-    res.json({ briefing: data.content?.[0]?.text || "Could not generate briefing." });
-  } catch (e) { res.status(500).json({ error: "Briefing failed" }); }
 });
 
 app.get("/api/jobs", requireAuth, async (req, res) => {
@@ -474,23 +531,29 @@ app.delete("/api/schedule/:id", requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: "Failed to delete stop" }); }
 });
 
-const __filename2 = fileURLToPath(import.meta.url);
-const __dirname2 = dirname(__filename2);
-const distPath = join(__dirname2, "../dist/public");
-if (existsSync(distPath)) {
-  const { default: serveStatic } = await import("serve-static");
-  app.use(serveStatic(distPath));
-  app.get("*", (_req: any, res: any) => {
-    res.sendFile(join(distPath, "index.html"));
-  });
-}
-
-app.listen(PORT, "0.0.0.0", async () => {
-  console.log(`Fabricor API running on port ${PORT}`);
-  await seedAdmin();
+app.post("/api/optimize-route", requireAuth, async (req, res) => {
+  try {
+    const { stops } = req.body;
+    if (!stops || stops.length < 2) return res.json({ optimizedOrder: stops.map((s: any) => s.id), totalDriveMinutes: 0 });
+    const apiKey = process.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) return res.json({ optimizedOrder: stops.map((s: any) => s.id), totalDriveMinutes: 0 });
+    const origin = encodeURIComponent(`${stops[0].address} ${stops[0].city} ${stops[0].state}`);
+    const destination = encodeURIComponent(`${stops[stops.length - 1].address} ${stops[stops.length - 1].city} ${stops[stops.length - 1].state}`);
+    const waypoints = stops.slice(1, -1).map((s: any) => encodeURIComponent(`${s.address} ${s.city} ${s.state}`)).join("|");
+    const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}${waypoints ? `&waypoints=optimize:true|${waypoints}` : ""}&key=${apiKey}`;
+    const geoRes = await fetch(url);
+    const data = await geoRes.json();
+    if (data.status !== "OK") return res.json({ optimizedOrder: stops.map((s: any) => s.id), totalDriveMinutes: 0 });
+    const order = data.routes[0].waypoint_order;
+    const middle = stops.slice(1, -1);
+    const reordered = [stops[0], ...order.map((i: number) => middle[i]), stops[stops.length - 1]];
+    const totalSeconds = data.routes[0].legs.reduce((sum: number, leg: any) => sum + leg.duration.value, 0);
+    res.json({ optimizedOrder: reordered.map((s: any) => s.id), totalDriveMinutes: Math.round(totalSeconds / 60) });
+  } catch (e) {
+    res.json({ optimizedOrder: req.body.stops.map((s: any) => s.id), totalDriveMinutes: 0 });
+  }
 });
 
-export default app;
 app.get("/api/emails", requireAuth, async (req, res) => {
   try {
     const userId = (req.session as any).userId;
@@ -515,165 +578,6 @@ app.delete("/api/emails/:id", requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: "Failed to delete email" }); }
 });
 
-app.post("/api/claude/generate-email", requireAuth, async (req, res) => {
-  try {
-    const { emailType, customerName, jobName, scheduledDate, stoneType, areas, salesRep, shopName, customPrompt } = req.body;
-    const prompts: Record<string, string> = {
-      template_confirmation: `Write a professional but warm email confirming a stone countertop template appointment. Shop: ${shopName || "our shop"}. Customer: ${customerName}. Job: ${jobName}. Date: ${scheduledDate}. Stone: ${stoneType}. Areas: ${areas}. Rep: ${salesRep}. Include what to expect during the template, how long it takes, and ask them to have the space cleared. Sign off warmly.`,
-      installation_confirmation: `Write a professional but warm email confirming a stone countertop installation. Shop: ${shopName || "our shop"}. Customer: ${customerName}. Job: ${jobName}. Date: ${scheduledDate}. Stone: ${stoneType}. Areas: ${areas}. Include what to expect, how long it takes, plumbing reconnect info, and care instructions after install. Sign off warmly.`,
-      completion_followup: `Write a warm thank you email after completing a stone countertop installation. Shop: ${shopName || "our shop"}. Customer: ${customerName}. Job: ${jobName}. Stone: ${stoneType}. Areas: ${areas}. Include care and maintenance tips for their specific stone, invite them to reach out with questions, and ask for a Google review. Keep it genuine and warm.`,
-      dispute_letter: `Write a professional dispute resolution email for a stone fabrication shop. Shop: ${shopName || "our shop"}. Customer: ${customerName}. Job: ${jobName}. Be empathetic, take responsibility where appropriate, outline what steps will be taken to resolve the issue, and provide a clear timeline. Keep it professional but human.`,
-      estimate: `Write a formal estimate email for a stone countertop project. Shop: ${shopName || "our shop"}. Customer: ${customerName}. Job: ${jobName}. Stone: ${stoneType}. Areas: ${areas}. Rep: ${salesRep}. Include a professional summary of the project scope, note that the estimate is valid for 30 days, outline next steps, and invite questions.`,
-      custom: customPrompt || "Write a professional email for a stone fabrication shop.",
-    };
-    const prompt = prompts[emailType] || prompts.custom;
-    const response = await fetch("https://sairn.vercel.app/api/claude", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514", max_tokens: 800,
-        system: "You are an expert email writer for a stone fabrication shop. Write emails that are professional but warm — like a family business with 30 years of experience. Always include a subject line at the very start formatted as 'Subject: [subject here]' followed by a blank line, then the email body. Never use generic corporate language. Be specific and human.",
-        messages: [{ role: "user", content: prompt }]
-      }),
-    });
-    const data = await response.json();
-    const text = data.content?.[0]?.text || "";
-    const lines = text.split("\n");
-    const subjectLine = lines.find((l: string) => l.startsWith("Subject:")) || "Subject: Regarding Your Project";
-    const subject = subjectLine.replace("Subject:", "").trim();
-    const body = lines.slice(lines.indexOf(subjectLine) + 2).join("\n").trim();
-    res.json({ subject, body });
-  } catch (e) { res.status(500).json({ error: "Email generation failed" }); }
-});
-
-app.post("/api/optimize-route", requireAuth, async (req, res) => {
-  try {
-    const { stops } = req.body;
-    if (!stops || stops.length < 2) return res.json({ optimizedOrder: stops.map((s: any) => s.id), totalDriveMinutes: 0 });
-    const apiKey = process.env.VITE_GOOGLE_MAPS_API_KEY;
-    if (!apiKey) return res.json({ optimizedOrder: stops.map((s: any) => s.id), totalDriveMinutes: 0 });
-    const origin = encodeURIComponent(`${stops[0].address} ${stops[0].city} ${stops[0].state}`);
-    const destination = encodeURIComponent(`${stops[stops.length - 1].address} ${stops[stops.length - 1].city} ${stops[stops.length - 1].state}`);
-    const waypoints = stops.slice(1, -1).map((s: any) => encodeURIComponent(`${s.address} ${s.city} ${s.state}`)).join("|");
-    const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}${waypoints ? `&waypoints=optimize:true|${waypoints}` : ""}&key=${apiKey}`;
-    const geoRes = await fetch(url);
-    const data = await geoRes.json();
-    if (data.status !== "OK") return res.json({ optimizedOrder: stops.map((s: any) => s.id), totalDriveMinutes: 0 });
-    const order = data.routes[0].waypoint_order;
-    const middle = stops.slice(1, -1);
-    const reordered = [stops[0], ...order.map((i: number) => middle[i]), stops[stops.length - 1]];
-    const totalSeconds = data.routes[0].legs.reduce((sum: number, leg: any) => sum + leg.duration.value, 0);
-    res.json({ optimizedOrder: reordered.map((s: any) => s.id), totalDriveMinutes: Math.round(totalSeconds / 60) });
-  } catch (e) {
-    console.error("Route optimization error:", e);
-    res.json({ optimizedOrder: req.body.stops.map((s: any) => s.id), totalDriveMinutes: 0 });
-  }
-});
-
-import cron from "node-cron";
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY || "placeholder");
-
-async function sendWeeklyReport() {
-  try {
-    const adminEmail = process.env.ADMIN_EMAIL_NOTIFY || process.env.ADMIN_EMAIL;
-    const adminEmail = process.env.ADMIN_EMAIL_NOTIFY || process.env.ADMIN_EMAIL;
-    if (!adminEmail) { console.log("No admin email configured"); return; }
-    console.log("Sending weekly report to:", adminEmail);
-      const { week, year } = getWeekNumber(new Date());
-      const prevWeek = week > 1 ? week - 1 : 52;
-      const prevYear = week > 1 ? year : year - 1;
-      const weekIssues = await db.select().from(issues).where(and(eq(issues.userId, user.id), eq(issues.weekNumber, prevWeek), eq(issues.year, prevYear)));
-      const totalImpact = weekIssues.reduce((s, i) => s + (i.totalImpact || 0), 0);
-      const remakes = weekIssues.filter(i => i.issueType === "remake").length;
-      const byRootCause = weekIssues.reduce((acc: Record<string, number>, i) => { acc[i.rootCause] = (acc[i.rootCause] || 0) + 1; return acc; }, {});
-      const topCause = Object.entries(byRootCause).sort((a, b) => b[1] - a[1])[0];
-      let aiInsight = "No issues logged last week — great job!";
-      if (weekIssues.length > 0) {
-        const prompt = `Weekly summary for stone fabrication shop ${user.shopName || ""}:
-Week ${prevWeek}, ${prevYear}: ${weekIssues.length} issues, $${totalImpact.toFixed(0)} total impact, ${remakes} remakes.
-Top root cause: ${topCause ? `${topCause[0]} (${topCause[1]} times)` : "none"}.
-Write 2-3 sentences: what happened last week, the biggest concern, and one specific action to take this week. Be direct and practical.`;
-        const r = await fetch("https://sairn.vercel.app/api/claude", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 300, messages: [{ role: "user", content: prompt }] }),
-        });
-        const data = await r.json();
-        aiInsight = data.content?.[0]?.text || aiInsight;
-      }
-      const healthScore = Math.max(0, Math.min(100, 100 - (weekIssues.length * 5) - (remakes * 10)));
-      const emailHtml = `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#0a0a0f;font-family:'DM Sans',Arial,sans-serif;color:#e4e4e7;">
-  <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
-    <div style="margin-bottom:32px;">
-      <div style="background:#f59e0b;display:inline-block;padding:8px 16px;border-radius:8px;margin-bottom:16px;">
-        <span style="color:#000;font-weight:bold;font-size:18px;">⚡ FABRICOR</span>
-      </div>
-      <h1 style="color:#ffffff;font-size:24px;margin:0 0 8px;">Weekly Shop Report</h1>
-      <p style="color:#71717a;margin:0;">Week ${prevWeek}, ${prevYear} · ${user.shopName || "Your Shop"}</p>
-    </div>
-    <div style="background:#0d0d14;border:1px solid #27272a;border-radius:16px;padding:24px;margin-bottom:16px;">
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center;">
-        <div>
-          <div style="color:#f59e0b;font-size:32px;font-weight:bold;font-family:monospace;">${healthScore}</div>
-          <div style="color:#71717a;font-size:12px;margin-top:4px;">Health Score</div>
-        </div>
-        <div>
-          <div style="color:#ef4444;font-size:32px;font-weight:bold;font-family:monospace;">${weekIssues.length}</div>
-          <div style="color:#71717a;font-size:12px;margin-top:4px;">Total Issues</div>
-        </div>
-        <div>
-          <div style="color:#f59e0b;font-size:32px;font-weight:bold;font-family:monospace;">$${totalImpact.toFixed(0)}</div>
-          <div style="color:#71717a;font-size:12px;margin-top:4px;">Total Impact</div>
-        </div>
-      </div>
-    </div>
-    <div style="background:#1a0a00;border:1px solid #78350f;border-radius:16px;padding:24px;margin-bottom:16px;">
-      <div style="color:#f59e0b;font-weight:bold;margin-bottom:12px;">🧠 Claude's Analysis</div>
-      <p style="color:#d4d4d8;line-height:1.6;margin:0;">${aiInsight}</p>
-    </div>
-    <div style="text-align:center;padding:24px 0;">
-      <a href="https://fabricor-production.up.railway.app" style="background:#f59e0b;color:#000;font-weight:bold;padding:12px 32px;border-radius:8px;text-decoration:none;display:inline-block;">Open Fabricor Dashboard</a>
-    </div>
-    <p style="color:#3f3f46;font-size:12px;text-align:center;">Fabricor by SAIRN Technologies · Sent every Monday at 7am</p>
-  </div>
-</body>
-</html>`;
-      await resend.emails.send({
-        from: "Fabricor <reports@sairn.com>",
-        to: user.email,
-        subject: `Week ${prevWeek} Shop Report — ${weekIssues.length} issues, $${totalImpact.toFixed(0)} impact`,
-        html: emailHtml,
-      });
-      console.log("Weekly report sent to:", user.email);
-    }
-  } catch (e) { console.error("Weekly report error:", e); }
-}
-
-cron.schedule("0 7 * * 1", sendWeeklyReport, { timezone: "America/New_York" });
-console.log("Weekly report cron scheduled — every Monday at 7am ET");
-
-app.post("/api/admin/send-weekly-report", requireAuth, async (req, res) => {
-  try {
-    await sendWeeklyReport();
-    res.json({ ok: true, message: "Weekly report sent!" });
-  } catch (e) {
-    res.status(500).json({ error: "Failed to send report" });
-  }
-});
-
-import Stripe from "stripe";
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", { apiVersion: "2024-06-20" });
-
-const STRIPE_PRICES: Record<string, string> = {
-  starter: process.env.STRIPE_PRICE_STARTER || "price_starter",
-  professional: process.env.STRIPE_PRICE_PROFESSIONAL || "price_professional",
-  enterprise: process.env.STRIPE_PRICE_ENTERPRISE || "price_enterprise",
-};
-
 app.post("/api/billing/create-checkout", requireAuth, async (req, res) => {
   try {
     const userId = (req.session as any).userId;
@@ -681,7 +585,9 @@ app.post("/api/billing/create-checkout", requireAuth, async (req, res) => {
     if (!user) return res.status(404).json({ error: "User not found" });
     const { plan } = req.body;
     const priceId = STRIPE_PRICES[plan];
-    if (!priceId) return res.status(400).json({ error: "Invalid plan" });
+    if (!priceId || priceId.startsWith("price_s") || priceId.startsWith("price_p") || priceId.startsWith("price_e")) {
+      return res.status(400).json({ error: "Invalid plan configuration" });
+    }
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
@@ -692,7 +598,7 @@ app.post("/api/billing/create-checkout", requireAuth, async (req, res) => {
       metadata: { userId: user.id, plan },
     });
     res.json({ url: session.url });
-  } catch (e) { res.status(500).json({ error: "Checkout failed" }); }
+  } catch (e) { res.status(500).json({ error: "Checkout failed: " + String(e) }); }
 });
 
 app.post("/api/billing/portal", requireAuth, async (req, res) => {
@@ -721,23 +627,33 @@ app.post("/api/billing/webhook", express.raw({ type: "application/json" }), asyn
   } catch (e) { res.status(400).json({ error: "Webhook failed" }); }
 });
 
+app.post("/api/admin/send-weekly-report", requireAuth, async (req, res) => {
+  try {
+    await sendWeeklyReport();
+    res.json({ ok: true, message: "Weekly report sent!" });
+  } catch (e) { res.status(500).json({ error: String(e) }); }
+});
+
 app.post("/api/admin/send-test-email", requireAuth, async (req, res) => {
   try {
     const targetEmail = process.env.ADMIN_EMAIL_NOTIFY || process.env.ADMIN_EMAIL || "mikied68@gmail.com";
-    console.log("Sending direct test to:", targetEmail);
+    console.log("Sending test email to:", targetEmail);
     const result = await resend.emails.send({
       from: "Fabricor <reports@sairn.com>",
       to: targetEmail,
-      subject: "Fabricor Test Email",
-      html: "<h1 style='color:#f59e0b'>Fabricor is working!</h1><p>Your weekly reports are configured correctly.</p>",
+      subject: "Fabricor Test Email ⚡",
+      html: "<div style='font-family:Arial;padding:40px;background:#0a0a0f;color:#e4e4e7;'><h1 style='color:#f59e0b'>⚡ FABRICOR</h1><p>Your weekly reports are configured correctly!</p><p style='color:#71717a;font-size:12px;'>Sent from reports@sairn.com via Resend</p></div>",
     });
     console.log("Resend result:", JSON.stringify(result));
     res.json({ ok: true, result, email: targetEmail });
   } catch (e) {
-    console.error("Direct email error:", e);
+    console.error("Test email error:", e);
     res.status(500).json({ error: String(e) });
   }
 });
+
+cron.schedule("0 7 * * 1", sendWeeklyReport, { timezone: "America/New_York" });
+console.log("Weekly cron scheduled — every Monday 7am ET");
 
 const __filename2 = fileURLToPath(import.meta.url);
 const __dirname2 = dirname(__filename2);
