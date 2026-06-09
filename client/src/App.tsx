@@ -10,6 +10,7 @@ import Schedule from "./pages/Schedule";
 import Emails from "./pages/Emails";
 import Estimator from "./pages/Estimator";
 import Layout from "./pages/Layout";
+import Onboarding from "./pages/Onboarding";
 import Inventory from "./pages/Inventory";
 import QuickBooks from "./pages/QuickBooks";
 import Billing from "./pages/Billing";
@@ -53,6 +54,7 @@ function AppContent() {
     </div>
   );
 
+  if (user && !user.shopName) return <Onboarding onComplete={() => window.location.reload()} />;
   if (!user) {
     const path = window.location.pathname;
     if (path === "/login" || path.startsWith("/login")) return <Login />;

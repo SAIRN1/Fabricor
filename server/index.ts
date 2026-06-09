@@ -717,6 +717,14 @@ app.delete("/api/inventory/:id", requireAuth, async (req, res) => {
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: "Failed to delete slab" }); }
 });
+app.patch("/api/auth/update-profile", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const { shopName, adminEmail } = req.body;
+    const [user] = await db.update(users).set({ shopName, email: adminEmail || undefined, updatedAt: new Date() }).where(eq(users.id, userId)).returning();
+    res.json({ user: { id: user.id, email: user.email, name: user.name, role: user.role, plan: user.plan, shopName: user.shopName } });
+  } catch (e) { res.status(500).json({ error: "Failed to update profile" }); }
+});
 app.listen(PORT, "0.0.0.0", async () => {
   console.log(`StoneDesk API running on port ${PORT}`);
   await seedAdmin();
