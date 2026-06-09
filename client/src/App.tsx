@@ -11,6 +11,7 @@ import Emails from "./pages/Emails";
 import Estimator from "./pages/Estimator";
 import Layout from "./pages/Layout";
 import Onboarding from "./pages/Onboarding";
+import CustomerPortal from "./pages/CustomerPortal";
 import Inventory from "./pages/Inventory";
 import QuickBooks from "./pages/QuickBooks";
 import Billing from "./pages/Billing";
@@ -171,6 +172,7 @@ function AppContent() {
           <Route path="/billing" component={Billing} />
           <Route path="/inventory" component={Inventory} />
           <Route path="/quickbooks" component={QuickBooks} />
+          <Route path="/track" component={CustomerPortal} />
           <Route path="/landing" component={Landing} />
           <Route path="/resources" component={Resources} />
           <Route path="/sales" component={Sales} />

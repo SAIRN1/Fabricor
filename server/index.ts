@@ -725,6 +725,46 @@ app.patch("/api/auth/update-profile", requireAuth, async (req, res) => {
     res.json({ user: { id: user.id, email: user.email, name: user.name, role: user.role, plan: user.plan, shopName: user.shopName } });
   } catch (e) { res.status(500).json({ error: "Failed to update profile" }); }
 });
+
+app.post("/api/jobs/:id/send-review-request", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const [job] = await db.select().from(jobs).where(and(eq(jobs.id, req.params.id), eq(jobs.userId, userId))).limit(1);
+    if (!job) return res.status(404).json({ error: "Job not found" });
+    const [settings] = await db.select().from(costSettings).where(eq(costSettings.userId, userId)).limit(1);
+    const reviewUrl = (settings as any)?.googleReviewUrl;
+    if (!reviewUrl) return res.json({ ok: false, message: "No review URL configured" });
+    let customerEmail = "";
+    if (job.customerId) {
+      const [customer] = await db.select().from(customers).where(eq(customers.id, job.customerId)).limit(1);
+      customerEmail = customer?.email || "";
+    }
+    if (!customerEmail) return res.json({ ok: false, message: "No customer email" });
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const emailHtml = `<!DOCTYPE html><html><body style="margin:0;padding:40px;background:#ffffff;font-family:Arial,sans-serif;"><div style="max-width:600px;margin:0 auto;"><h2 style="color:#1a1a1a;">Thank you for choosing ${user?.shopName || "us"}!</h2><p style="color:#555;line-height:1.6;">Your ${job.stoneType || "stone"} project is now complete. We hope you love your new countertops!</p><p style="color:#555;line-height:1.6;">If you had a great experience, we'd really appreciate a quick Google review. It only takes 30 seconds and helps other homeowners find us.</p><a href="${reviewUrl}" style="display:inline-block;background:#f59e0b;color:#000;font-weight:bold;padding:12px 32px;border-radius:8px;text-decoration:none;margin:16px 0;">Leave a Google Review ⭐</a><p style="color:#999;font-size:12px;margin-top:32px;">Thank you from the team at ${user?.shopName || "StoneDesk"}</p></div></body></html>`;
+    await resend.emails.send({
+      from: "StoneDesk <reports@sairntech.com>",
+      to: customerEmail,
+      subject: `How was your experience with ${user?.shopName || "us"}? Leave a review!`,
+      html: emailHtml,
+    });
+    res.json({ ok: true, message: `Review request sent to ${customerEmail}` });
+  } catch (e) { res.status(500).json({ error: String(e) }); }
+});
+
+
+app.get("/api/portal/job", async (req, res) => {
+  try {
+    const { jobNumber, email } = req.query as { jobNumber: string; email: string };
+    if (!jobNumber || !email) return res.status(400).json({ error: "Job number and email required" });
+    const customer = await db.select().from(customers).where(eq(customers.email, email.toLowerCase())).limit(1);
+    if (!customer[0]) return res.json({ job: null });
+    const job = await db.select().from(jobs).where(and(eq(jobs.customerId, customer[0].id), eq(jobs.jobNumber, jobNumber))).limit(1);
+    if (!job[0]) return res.json({ job: null });
+    res.json({ job: { id: job[0].id, jobName: job[0].jobName, jobNumber: job[0].jobNumber, stage: job[0].stage, stoneType: job[0].stoneType, areas: job[0].areas, jobCity: job[0].jobCity, jobState: job[0].jobState } });
+  } catch (e) { res.status(500).json({ error: "Failed to fetch job" }); }
+});
+
 app.listen(PORT, "0.0.0.0", async () => {
   console.log(`StoneDesk API running on port ${PORT}`);
   await seedAdmin();

@@ -53,6 +53,13 @@ export default function Jobs() {
       method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ stage }), credentials: "include",
     }).then(r => r.json()),
+    onSuccess: async (data: any, variables: any) => {
+      if (variables.stage === "complete" && data.customerId) {
+        await fetch("/api/jobs/" + data.id + "/send-review-request", {
+          method: "POST", credentials: "include",
+        }).catch(() => {});
+      }
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/jobs"] }),
   });
 

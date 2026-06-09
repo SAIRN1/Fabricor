@@ -38,7 +38,38 @@ export function Resources() {
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-white font-semibold">Log Resource Activity</h2>
               <button onClick={() => setShowForm(false)} className="text-zinc-500 hover:text-zinc-300"><X size={18} /></button>
-            </div>
+              <div className="bg-[#0d0d14] border border-zinc-800/60 rounded-xl p-6 mb-6">
+        <h2 className="text-white font-semibold mb-1">Google Reviews</h2>
+        <p className="text-zinc-500 text-sm mb-4">Auto-send a review request when a job is marked complete</p>
+        <div className="space-y-3">
+          <div>
+            <label className="text-zinc-400 text-xs uppercase tracking-wider mb-1.5 block">Google Business Review URL</label>
+            <input type="text" placeholder="https://g.page/r/YOUR_REVIEW_LINK" value={form?.googleReviewUrl || ""}
+              onChange={e => setForm((f: any) => ({ ...f, googleReviewUrl: e.target.value }))}
+              className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-white placeholder-zinc-600 focus:outline-none focus:border-amber-500 text-sm" />
+            <p className="text-zinc-600 text-xs mt-1">Find this in Google Business Profile - Get more reviews - Share review form</p>
+          </div>
+          <button onClick={() => mutation.mutate(form)} className="w-full py-2.5 rounded-lg font-semibold text-sm bg-amber-500 hover:bg-amber-400 text-black transition-colors">Save Review Link</button>
+        </div>
+      </div>
+      <div className="bg-[#0d0d14] border border-zinc-800/60 rounded-xl p-6 mb-6">
+        <h2 className="text-white font-semibold mb-1">SMS Notifications — Coming Soon</h2>
+        <p className="text-zinc-500 text-sm mb-4">Text customers automatically when their job reaches key stages</p>
+        <div className="bg-amber-950/20 border border-amber-800/30 rounded-lg p-3">
+          <p className="text-zinc-500 text-xs">We are integrating Twilio for automated SMS. Customers will receive texts when their template is scheduled, when their slab is selected, and when installation is complete.</p>
+        </div>
+      </div>
+      <div className="bg-[#0d0d14] border border-zinc-800/60 rounded-xl p-6 mb-6">
+        <h2 className="text-white font-semibold mb-1">Silica Safety Compliance</h2>
+        <p className="text-zinc-500 text-sm mb-4">Track worker training — California SB 20 STOP Act effective July 1 2026</p>
+        <div className="bg-blue-950/20 border border-blue-800/30 rounded-lg p-4">
+          <p className="text-blue-400 text-xs font-medium mb-2">All fabrication shops must annually train workers on silica safety and attest to the state.</p>
+          <div className="text-zinc-400 text-xs space-y-1">
+            <div>Coming next release: Worker training log, annual attestation records, Cal/OSHA inspection documentation, compliance reminders</div>
+          </div>
+        </div>
+      </div>
+    </div>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
