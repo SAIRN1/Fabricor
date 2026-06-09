@@ -15,7 +15,7 @@ import {
   users, issues, weeklyReports, resourceActivities,
   salesEntries, priceBookItems, costSettings, industryBenchmarks,
   claudeConversations, customers, jobs, jobPhases, jobFeedback,
-  scheduleStops, aiEmails, slabInventory,
+  scheduleStops, aiEmails, slabInventory, jobPhotos,
   calculateTotalInternalCost, calculateOpportunityCost, calculateTotalImpact,
   getWeekNumber, BUSINESS_CONSTANTS
 } from "../shared/schema.js";
@@ -667,6 +667,28 @@ if (existsSync(distPath)) {
   });
 }
 
+app.get("/api/jobs/:id/photos", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const photos = await db.select().from(jobPhotos).where(and(eq(jobPhotos.jobId, req.params.id), eq(jobPhotos.userId, userId))).orderBy(desc(jobPhotos.createdAt));
+    res.json(photos);
+  } catch (e) { res.json([]); }
+});
+app.post("/api/jobs/:id/photos", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const { dataUrl, photoType, caption } = req.body;
+    const [photo] = await db.insert(jobPhotos).values({ userId, jobId: req.params.id, dataUrl, photoType: photoType || "general", caption }).returning();
+    res.json(photo);
+  } catch (e) { res.status(500).json({ error: "Failed to save photo" }); }
+});
+app.delete("/api/jobs/:id/photos/:photoId", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    await db.delete(jobPhotos).where(and(eq(jobPhotos.id, req.params.photoId), eq(jobPhotos.userId, userId)));
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: "Failed to delete photo" }); }
+});
 app.get("/api/inventory", requireAuth, async (req, res) => {
   try {
     const userId = (req.session as any).userId;
