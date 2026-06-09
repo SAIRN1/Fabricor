@@ -1,6 +1,6 @@
-import { Mail, Calculator, PenTool, useState, useEffect, createContext, useContext } from "react";
-import { Mail, Calculator, PenTool, Route, Switch, useLocation, Link } from "wouter";
-import { Mail, Calculator, PenTool, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Mail, Calculator, PenTool, Upload, useState, useEffect, createContext, useContext } from "react";
+import { Mail, Calculator, PenTool, Upload, Route, Switch, useLocation, Link } from "wouter";
+import { Mail, Calculator, PenTool, Upload, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Dashboard from "./pages/Dashboard";
 import Issues from "./pages/Issues";
 import Intelligence from "./pages/Intelligence";
@@ -10,10 +10,11 @@ import Schedule from "./pages/Schedule";
 import Emails from "./pages/Emails";
 import Estimator from "./pages/Estimator";
 import Layout from "./pages/Layout";
-import { Mail, Calculator, PenTool, Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
+import Import from "./pages/Import";
+import { Mail, Calculator, PenTool, Upload, Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
 import Login from "./pages/Login";
 import MobileNav from "./components/MobileNav";
-import { Mail, Calculator, PenTool,
+import { Mail, Calculator, PenTool, Upload,
   LayoutDashboard, AlertTriangle, Users, TrendingUp,
   BookOpen, Brain, Settings as SettingsIcon, LogOut,
   ChevronRight, Activity, Zap, Briefcase, Calendar
@@ -59,6 +60,7 @@ function AppContent() {
     { href: "/emails", icon: Mail, label: "Emails", desc: "AI email generator" },
     { href: "/estimator", icon: Calculator, label: "Estimator", desc: "Price calculator" },
     { href: "/layout", icon: PenTool, label: "Layout", desc: "2D drawing tool" },
+    { href: "/import", icon: Upload, label: "Import", desc: "Excel & CSV import" },
     { href: "/resources", icon: Users, label: "Resources", desc: "Team productivity" },
     { href: "/sales", icon: TrendingUp, label: "Sales", desc: "Rep performance" },
     { href: "/pricebook", icon: BookOpen, label: "Price Book", desc: "Pricing & costs" },
@@ -152,6 +154,7 @@ function AppContent() {
           <Route path="/emails" component={Emails} />
           <Route path="/estimator" component={Estimator} />
           <Route path="/layout" component={Layout} />
+          <Route path="/import" component={Import} />
           <Route path="/resources" component={Resources} />
           <Route path="/sales" component={Sales} />
           <Route path="/pricebook" component={PriceBook} />
