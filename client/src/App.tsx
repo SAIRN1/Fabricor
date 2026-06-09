@@ -14,6 +14,7 @@ import Onboarding from "./pages/Onboarding";
 import CustomerPortal from "./pages/CustomerPortal";
 import Silica from "./pages/Silica";
 import QuoteGenerator from "./pages/QuoteGenerator";
+import Team from "./pages/Team";
 import Inventory from "./pages/Inventory";
 import QuickBooks from "./pages/QuickBooks";
 import Billing from "./pages/Billing";
@@ -22,7 +23,7 @@ import Import from "./pages/Import";
 import { Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
 import Login from "./pages/Login";
 import MobileNav from "./components/MobileNav";
-import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield, Sparkles,
+import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield, Sparkles, Users,
   LayoutDashboard, AlertTriangle, Users, TrendingUp,
   Brain, Settings as SettingsIcon, LogOut,
   ChevronRight, Activity, Zap, Briefcase, Calendar
@@ -79,6 +80,7 @@ function AppContent() {
     { href: "/quickbooks", icon: BookOpen, label: "QuickBooks", desc: "QB export" },
     { href: "/silica", icon: Shield, label: "Silica", desc: "Safety compliance" },
     { href: "/quote", icon: Sparkles, label: "AI Quote", desc: "Generate quotes with AI" },
+    { href: "/team", icon: Users, label: "Team", desc: "Manage team members" },
     { href: "/resources", icon: Users, label: "Resources", desc: "Team productivity" },
     { href: "/sales", icon: TrendingUp, label: "Sales", desc: "Rep performance" },
     { href: "/pricebook", icon: BookOpen, label: "Price Book", desc: "Pricing & costs" },
@@ -179,6 +181,7 @@ function AppContent() {
           <Route path="/track" component={CustomerPortal} />
           <Route path="/silica" component={Silica} />
           <Route path="/quote" component={QuoteGenerator} />
+          <Route path="/team" component={Team} />
           <Route path="/landing" component={Landing} />
           <Route path="/resources" component={Resources} />
           <Route path="/sales" component={Sales} />
