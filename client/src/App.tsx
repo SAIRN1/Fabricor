@@ -52,7 +52,11 @@ function AppContent() {
     </div>
   );
 
-  if (!user) return <Landing />;
+  if (!user) {
+    const path = window.location.pathname;
+    if (path === "/login" || path.startsWith("/login")) return <Login />;
+    return <Landing />;
+  }
 
   const nav = [
     { href: "/", icon: LayoutDashboard, label: "Dashboard", desc: "Shop overview" },
