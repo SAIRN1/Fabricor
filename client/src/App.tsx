@@ -1,6 +1,6 @@
-import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, useState, useEffect, createContext, useContext } from "react";
-import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, Route, Switch, useLocation, Link } from "wouter";
-import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, useState, useEffect, createContext, useContext } from "react";
+import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Route, Switch, useLocation, Link } from "wouter";
+import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Dashboard from "./pages/Dashboard";
 import Issues from "./pages/Issues";
 import Intelligence from "./pages/Intelligence";
@@ -11,13 +11,14 @@ import Emails from "./pages/Emails";
 import Estimator from "./pages/Estimator";
 import Layout from "./pages/Layout";
 import Inventory from "./pages/Inventory";
+import QuickBooks from "./pages/QuickBooks";
 import Billing from "./pages/Billing";
 import Landing from "./pages/Landing";
 import Import from "./pages/Import";
-import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
+import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
 import Login from "./pages/Login";
 import MobileNav from "./components/MobileNav";
-import { Mail, Calculator, PenTool, Upload, CreditCard, Layers,
+import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen,
   LayoutDashboard, AlertTriangle, Users, TrendingUp,
   BookOpen, Brain, Settings as SettingsIcon, LogOut,
   ChevronRight, Activity, Zap, Briefcase, Calendar
@@ -70,6 +71,7 @@ function AppContent() {
     { href: "/import", icon: Upload, label: "Import", desc: "Excel & CSV import" },
     { href: "/billing", icon: CreditCard, label: "Billing", desc: "Plans & subscription" },
     { href: "/inventory", icon: Layers, label: "Inventory", desc: "Slab inventory" },
+    { href: "/quickbooks", icon: BookOpen, label: "QuickBooks", desc: "QB export" },
     { href: "/resources", icon: Users, label: "Resources", desc: "Team productivity" },
     { href: "/sales", icon: TrendingUp, label: "Sales", desc: "Rep performance" },
     { href: "/pricebook", icon: BookOpen, label: "Price Book", desc: "Pricing & costs" },
@@ -166,6 +168,7 @@ function AppContent() {
           <Route path="/import" component={Import} />
           <Route path="/billing" component={Billing} />
           <Route path="/inventory" component={Inventory} />
+          <Route path="/quickbooks" component={QuickBooks} />
           <Route path="/landing" component={Landing} />
           <Route path="/resources" component={Resources} />
           <Route path="/sales" component={Sales} />
