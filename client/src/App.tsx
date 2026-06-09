@@ -11,6 +11,7 @@ import Emails from "./pages/Emails";
 import Estimator from "./pages/Estimator";
 import Layout from "./pages/Layout";
 import Billing from "./pages/Billing";
+import Landing from "./pages/Landing";
 import Import from "./pages/Import";
 import { Mail, Calculator, PenTool, Upload, CreditCard, Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
 import Login from "./pages/Login";
@@ -50,7 +51,7 @@ function AppContent() {
     </div>
   );
 
-  if (!user) return <Login />;
+  if (!user) return <Landing />;
 
   const nav = [
     { href: "/", icon: LayoutDashboard, label: "Dashboard", desc: "Shop overview" },
@@ -158,6 +159,7 @@ function AppContent() {
           <Route path="/layout" component={Layout} />
           <Route path="/import" component={Import} />
           <Route path="/billing" component={Billing} />
+          <Route path="/landing" component={Landing} />
           <Route path="/resources" component={Resources} />
           <Route path="/sales" component={Sales} />
           <Route path="/pricebook" component={PriceBook} />
