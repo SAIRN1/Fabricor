@@ -21,6 +21,7 @@ import Analytics from "./pages/Analytics";
 import Remnants from "./pages/Remnants";
 import CareGuide from "./pages/CareGuide";
 import TaxCredits from "./pages/TaxCredits";
+import Profitability from "./pages/Profitability";
 import Inventory from "./pages/Inventory";
 import QuickBooks from "./pages/QuickBooks";
 import Billing from "./pages/Billing";
@@ -92,6 +93,7 @@ function AppContent() {
     { href: "/remnants", icon: Package, label: "Remnants", desc: "Remnant tracker" },
     { href: "/care", icon: BookOpen, label: "Care Guides", desc: "Stone care guides" },
     { href: "/tax", icon: DollarSign, label: "Tax Credits", desc: "Tax credit tracker" },
+    { href: "/profitability", icon: TrendingUp, label: "Profitability", desc: "Job profit analysis" },
     { href: "/resources", icon: Users, label: "Resources", desc: "Team productivity" },
     { href: "/sales", icon: TrendingUp, label: "Sales", desc: "Rep performance" },
     { href: "/pricebook", icon: BookOpen, label: "Price Book", desc: "Pricing & costs" },
@@ -198,6 +200,7 @@ function AppContent() {
           <Route path="/remnants" component={Remnants} />
           <Route path="/care" component={CareGuide} />
           <Route path="/tax" component={TaxCredits} />
+          <Route path="/profitability" component={Profitability} />
           <Route path="/installer" component={InstallerView} />
           <Route path="/landing" component={Landing} />
           <Route path="/resources" component={Resources} />
