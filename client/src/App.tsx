@@ -25,6 +25,7 @@ import Profitability from "./pages/Profitability";
 import YardMap from "./pages/YardMap";
 import BuilderPortal from "./pages/BuilderPortal";
 import BuilderOrderPortal from "./pages/BuilderOrderPortal";
+import Locations from "./pages/Locations";
 import Inventory from "./pages/Inventory";
 import QuickBooks from "./pages/QuickBooks";
 import Billing from "./pages/Billing";
@@ -33,7 +34,7 @@ import Import from "./pages/Import";
 import { Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
 import Login from "./pages/Login";
 import MobileNav from "./components/MobileNav";
-import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield, Sparkles, BarChart2, Package, DollarSign, Grid, Building2,
+import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield, Sparkles, BarChart2, Package, DollarSign, Grid, Building2, MapPin,
   LayoutDashboard, AlertTriangle, Users, TrendingUp,
   Brain, Settings as SettingsIcon, LogOut,
   ChevronRight, Activity, Zap, Briefcase, Calendar
@@ -99,6 +100,7 @@ function AppContent() {
     { href: "/profitability", icon: TrendingUp, label: "Profitability", desc: "Job profit analysis" },
     { href: "/yard", icon: Grid, label: "Yard Map", desc: "Visual slab yard" },
     { href: "/builders", icon: Building2, label: "Builders", desc: "Builder portal" },
+    { href: "/locations", icon: MapPin, label: "Locations", desc: "Multi-location" },
     { href: "/resources", icon: Users, label: "Resources", desc: "Team productivity" },
     { href: "/sales", icon: TrendingUp, label: "Sales", desc: "Rep performance" },
     { href: "/pricebook", icon: BookOpen, label: "Price Book", desc: "Pricing & costs" },
@@ -208,6 +210,7 @@ function AppContent() {
           <Route path="/profitability" component={Profitability} />
           <Route path="/yard" component={YardMap} />
           <Route path="/builders" component={BuilderPortal} />
+          <Route path="/locations" component={Locations} />
           <Route path="/builder/:code" component={BuilderOrderPortal} />
           <Route path="/installer" component={InstallerView} />
           <Route path="/landing" component={Landing} />
