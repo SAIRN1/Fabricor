@@ -29,7 +29,6 @@ import Locations from "./pages/Locations";
 import DesignerPortal from "./pages/DesignerPortal";
 import Suppliers from "./pages/Suppliers";
 import MaterialAdvisor from "./pages/MaterialAdvisor";
-import Suppliers from "./pages/Suppliers";
 import Inventory from "./pages/Inventory";
 import QuickBooks from "./pages/QuickBooks";
 import Billing from "./pages/Billing";
@@ -38,11 +37,7 @@ import Import from "./pages/Import";
 import { Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
 import Login from "./pages/Login";
 import MobileNav from "./components/MobileNav";
-import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield, Sparkles, BarChart2, Package, DollarSign, Grid, Building2, MapPin, Palette, Globe, Globe,
-  LayoutDashboard, AlertTriangle, Users, TrendingUp,
-  Brain, Settings as SettingsIcon, LogOut,
-  ChevronRight, Activity, Zap, Briefcase, Calendar
-} from "lucide-react";
+import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield, Sparkles, BarChart2, Package, DollarSign, Grid, Building2, MapPin, Palette, Globe, LayoutDashboard, AlertTriangle, Users, TrendingUp, Brain, Settings as SettingsIcon, LogOut, ChevronRight, Activity, Zap, Briefcase, Calendar } from "lucide-react";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30000 } }
