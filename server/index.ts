@@ -45,7 +45,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET || "fabricor-secret-2026",
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false, maxAge: 7 * 24 * 60 * 60 * 1000 },
+  cookie: { secure: process.env.NODE_ENV === "production", sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", maxAge: 7 * 24 * 60 * 60 * 1000 },
 }));
 
 const requireAuth = (req: any, res: any, next: any) => {
