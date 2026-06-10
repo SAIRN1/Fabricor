@@ -28,6 +28,7 @@ import BuilderOrderPortal from "./pages/BuilderOrderPortal";
 import Locations from "./pages/Locations";
 import DesignerPortal from "./pages/DesignerPortal";
 import Suppliers from "./pages/Suppliers";
+import MaterialAdvisor from "./pages/MaterialAdvisor";
 import Suppliers from "./pages/Suppliers";
 import Inventory from "./pages/Inventory";
 import QuickBooks from "./pages/QuickBooks";
@@ -106,6 +107,7 @@ function AppContent() {
     { href: "/locations", icon: MapPin, label: "Locations", desc: "Multi-location" },
     { href: "/designers", icon: Palette, label: "Designers", desc: "Designer portal" },
     { href: "/suppliers", icon: Globe, label: "Suppliers", desc: "Supplier intelligence" },
+    { href: "/advisor", icon: Sparkles, label: "AI Advisor", desc: "Material recommendations" },
     { href: "/suppliers", icon: Globe, label: "Suppliers", desc: "Supplier intelligence" },
     { href: "/resources", icon: Users, label: "Resources", desc: "Team productivity" },
     { href: "/sales", icon: TrendingUp, label: "Sales", desc: "Rep performance" },
@@ -219,6 +221,7 @@ function AppContent() {
           <Route path="/locations" component={Locations} />
           <Route path="/designers" component={DesignerPortal} />
           <Route path="/suppliers" component={Suppliers} />
+          <Route path="/advisor" component={MaterialAdvisor} />
           <Route path="/suppliers" component={Suppliers} />
           <Route path="/builder/:code" component={BuilderOrderPortal} />
           <Route path="/installer" component={InstallerView} />
