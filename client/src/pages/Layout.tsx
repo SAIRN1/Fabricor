@@ -298,10 +298,10 @@ export default function Layout() {
     });
     // Export seams as lines
     seams.forEach(seam => {
-      const x1 = ((seam.start.x - pan.x) * SCALE).toFixed(4);
-      const y1 = (-(seam.start.y - pan.y) * SCALE).toFixed(4);
-      const x2 = ((seam.end.x - pan.x) * SCALE).toFixed(4);
-      const y2 = (-(seam.end.y - pan.y) * SCALE).toFixed(4);
+      const x1 = ((seam.x1 - pan.x) * SCALE).toFixed(4);
+      const y1 = (-(seam.y1 - pan.y) * SCALE).toFixed(4);
+      const x2 = ((seam.x2 - pan.x) * SCALE).toFixed(4);
+      const y2 = (-(seam.y2 - pan.y) * SCALE).toFixed(4);
       dxf += `0\nLINE\n8\nSEAMS\n10\n${x1}\n20\n${y1}\n11\n${x2}\n21\n${y2}\n`;
     });
     // Export cutouts as circles/rectangles
