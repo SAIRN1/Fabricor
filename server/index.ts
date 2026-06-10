@@ -1162,6 +1162,61 @@ app.delete("/api/marketplace/:id", requireAuth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: String(e) }); }
 });
 
+
+// ── QUOTE HISTORY ─────────────────────────────────────────────
+app.get("/api/quote-history", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const history = user?.plan ? JSON.parse((user as any).quote_history || '[]') : [];
+    res.json({ history });
+  } catch(e) { res.status(500).json({ error: "Failed" }); }
+});
+app.post("/api/quote-history", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const { history } = req.body;
+    await db.execute(sql`UPDATE users SET quote_history = ${JSON.stringify(history)}::jsonb WHERE id = ${userId}`);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: "Failed" }); }
+});
+
+// ── SHOP SETTINGS ─────────────────────────────────────────────
+app.get("/api/shop-settings", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const rows = await db.execute(sql`SELECT settings FROM cost_settings WHERE user_id = ${userId} LIMIT 1`);
+    const settings = (rows.rows[0] as any)?.settings || {};
+    res.json({ settings });
+  } catch(e) { res.status(500).json({ error: "Failed" }); }
+});
+app.post("/api/shop-settings", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const { settings } = req.body;
+    await db.execute(sql`INSERT INTO cost_settings (user_id, settings) VALUES (${userId}, ${JSON.stringify(settings)}::jsonb) ON CONFLICT (user_id) DO UPDATE SET settings = ${JSON.stringify(settings)}::jsonb`);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: "Failed" }); }
+});
+
+// ── BIZ DATA ──────────────────────────────────────────────────
+app.get("/api/biz-data", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const rows = await db.execute(sql`SELECT biz_data FROM cost_settings WHERE user_id = ${userId} LIMIT 1`);
+    const data = (rows.rows[0] as any)?.biz_data || {};
+    res.json({ data });
+  } catch(e) { res.status(500).json({ error: "Failed" }); }
+});
+app.post("/api/biz-data", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const { data } = req.body;
+    await db.execute(sql`INSERT INTO cost_settings (user_id, biz_data) VALUES (${userId}, ${JSON.stringify(data)}::jsonb) ON CONFLICT (user_id) DO UPDATE SET biz_data = ${JSON.stringify(data)}::jsonb`);
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: "Failed" }); }
+});
+
 app.listen(PORT, "0.0.0.0", async () => {
   console.log(`StoneDesk API running on port ${PORT}`);
   await seedAdmin();
