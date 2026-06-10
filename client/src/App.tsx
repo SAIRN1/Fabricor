@@ -30,6 +30,7 @@ import DesignerPortal from "./pages/DesignerPortal";
 import Suppliers from "./pages/Suppliers";
 import MaterialAdvisor from "./pages/MaterialAdvisor";
 import Benchmarking from "./pages/Benchmarking";
+import Marketplace from "./pages/Marketplace";
 import Inventory from "./pages/Inventory";
 import QuickBooks from "./pages/QuickBooks";
 import Billing from "./pages/Billing";
@@ -38,7 +39,7 @@ import Import from "./pages/Import";
 import { Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
 import Login from "./pages/Login";
 import MobileNav from "./components/MobileNav";
-import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield, Sparkles, BarChart2, Package, DollarSign, Grid, Building2, MapPin, Palette, Globe, Award, LayoutDashboard, AlertTriangle, Users, TrendingUp, Brain, Settings as SettingsIcon, LogOut, ChevronRight, Activity, Zap, Briefcase, Calendar } from "lucide-react";
+import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield, Sparkles, BarChart2, Package, DollarSign, Grid, Building2, MapPin, Palette, Globe, Award, Store, LayoutDashboard, AlertTriangle, Users, TrendingUp, Brain, Settings as SettingsIcon, LogOut, ChevronRight, Activity, Zap, Briefcase, Calendar } from "lucide-react";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30000 } }
@@ -105,6 +106,7 @@ function AppContent() {
     { href: "/suppliers", icon: Globe, label: "Suppliers", desc: "Supplier intelligence" },
     { href: "/advisor", icon: Sparkles, label: "AI Advisor", desc: "Material recommendations" },
     { href: "/benchmarking", icon: Award, label: "Benchmarking", desc: "Industry comparison" },
+    { href: "/marketplace", icon: Store, label: "Marketplace", desc: "Buy, sell, trade" },
     { href: "/suppliers", icon: Globe, label: "Suppliers", desc: "Supplier intelligence" },
     { href: "/resources", icon: Users, label: "Resources", desc: "Team productivity" },
     { href: "/sales", icon: TrendingUp, label: "Sales", desc: "Rep performance" },
@@ -220,6 +222,7 @@ function AppContent() {
           <Route path="/suppliers" component={Suppliers} />
           <Route path="/advisor" component={MaterialAdvisor} />
           <Route path="/benchmarking" component={Benchmarking} />
+          <Route path="/marketplace" component={Marketplace} />
           <Route path="/suppliers" component={Suppliers} />
           <Route path="/builder/:code" component={BuilderOrderPortal} />
           <Route path="/installer" component={InstallerView} />
