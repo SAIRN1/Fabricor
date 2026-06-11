@@ -1217,6 +1217,38 @@ app.post("/api/biz-data", requireAuth, async (req, res) => {
   } catch(e) { res.status(500).json({ error: "Failed" }); }
 });
 
+
+// ── PUBLIC CHECKOUT — SAIRNcode / SAIRNhr / SAIRNaccounting ─────────────
+// No auth required — product pages link here directly with price ID
+app.get("/api/billing/checkout", async (req, res) => {
+  try {
+    const priceId  = req.query.price  as string;
+    const appName  = req.query.app    as string || "sairn";
+    const planName = req.query.plan   as string || "pro";
+    if (!priceId || !priceId.startsWith("price_")) {
+      return res.status(400).json({ error: "Invalid price ID" });
+    }
+    const appUrls: Record<string, string> = {
+      sairncode:       "https://sairn.vercel.app/sairncode",
+      sairnhr:         "https://sairn.vercel.app/sairnhr",
+      sairnaccounting: "https://sairn.vercel.app/sairnaccounting",
+    };
+    const successBase = appUrls[appName] || "https://sairn.vercel.app";
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      payment_method_types: ["card"],
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: successBase + "?subscribed=1&plan=" + planName,
+      cancel_url:  successBase + "?cancelled=1",
+      metadata: { app: appName, plan: planName },
+    });
+    res.redirect(303, session.url!);
+  } catch (e: any) {
+    console.error("Public checkout error:", e.message);
+    res.status(500).json({ error: "Checkout failed — " + e.message });
+  }
+});
+
 app.listen(PORT, "0.0.0.0", async () => {
   console.log(`StoneDesk API running on port ${PORT}`);
   await seedAdmin();
