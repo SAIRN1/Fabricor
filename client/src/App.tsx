@@ -41,6 +41,7 @@ import { Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
 import Login from "./pages/Login";
 import MobileNav from "./components/MobileNav";
 import { Mail, Calculator, PenTool, Upload, CreditCard, Layers, BookOpen, Shield, Sparkles, BarChart2, Package, DollarSign, Grid, Building2, MapPin, Palette, Globe, Award, Store, LayoutDashboard, AlertTriangle, Users, TrendingUp, Brain, Settings as SettingsIcon, LogOut, ChevronRight, Activity, Zap, Briefcase, Calendar } from "lucide-react";
+import Checks from "./pages/Checks";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30000 } }
@@ -212,6 +213,7 @@ function AppContent() {
           <Route path="/quote" component={QuoteGenerator} />
           <Route path="/team" component={Team} />
               <Route path="/compensation" component={Compensation} />
+              <Route path="/checks" element={<Checks />} />
           <Route path="/leads" component={Leads} />
           <Route path="/analytics" component={Analytics} />
           <Route path="/remnants" component={Remnants} />
