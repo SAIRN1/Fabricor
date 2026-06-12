@@ -698,6 +698,265 @@ app.get("/api/bridge/context", requireAuth, async (req, res) => {
   }
 });
 
+
+// ============================================================
+// COMPENSATION MANAGEMENT — Role-Gated
+// Visibility: owner/admin = all reps | manager = team | sales = own only
+// ============================================================
+
+function requireCompAccess(req: any, res: any, next: any) {
+  const userId = (req.session as any)?.userId;
+  if (!userId) return res.status(401).json({ error: "Unauthorized" });
+  next();
+}
+
+async function getCompRole(userId: string) {
+  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  return user?.role || "viewer";
+}
+
+function canViewAllComp(role: string) {
+  return ["owner", "admin"].includes(role);
+}
+function canViewTeamComp(role: string) {
+  return ["owner", "admin", "manager"].includes(role);
+}
+
+// ── GET /api/compensation/plans ─────────────────────────────
+// owner/admin: all plans | manager: team plans | sales: own only
+app.get("/api/compensation/plans", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const role = await getCompRole(userId);
+    let plans: any[];
+    if (canViewAllComp(role)) {
+      plans = await db.select().from(compensationPlans)
+        .where(eq(compensationPlans.shopId, userId))
+        .orderBy(desc(compensationPlans.createdAt));
+    } else {
+      // Sales/installer/viewer: own plan only
+      plans = await db.select().from(compensationPlans)
+        .where(and(eq(compensationPlans.userId, userId), isNull(compensationPlans.endDate)))
+        .orderBy(desc(compensationPlans.createdAt));
+    }
+    res.json(plans);
+  } catch (e) { res.status(500).json({ error: "Failed to fetch plans" }); }
+});
+
+// ── POST /api/compensation/plans ────────────────────────────
+// owner/admin only — create/update a rep's pay structure
+app.post("/api/compensation/plans", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const role = await getCompRole(userId);
+    if (!canViewAllComp(role)) return res.status(403).json({ error: "Not authorized to manage compensation plans" });
+    const { targetUserId, repName, compType, baseSalary, commissionRate,
+      commissionTiers, bonusStructure, drawAmount, notes, endOldPlan } = req.body;
+    // End any existing active plan for this rep
+    if (endOldPlan) {
+      await db.update(compensationPlans)
+        .set({ endDate: new Date() })
+        .where(and(eq(compensationPlans.userId, targetUserId), isNull(compensationPlans.endDate)));
+    }
+    const [plan] = await db.insert(compensationPlans).values({
+      shopId: userId,
+      userId: targetUserId || userId,
+      repName: repName || "Unknown",
+      compType: compType || "commission",
+      baseSalary: baseSalary || 0,
+      commissionRate: commissionRate || 0,
+      commissionTiers: commissionTiers ? JSON.stringify(commissionTiers) : null,
+      bonusStructure: bonusStructure ? JSON.stringify(bonusStructure) : null,
+      drawAmount: drawAmount || 0,
+      notes: notes || null,
+      createdBy: userId,
+      effectiveDate: new Date(),
+    }).returning();
+    res.json(plan);
+  } catch (e) { res.status(500).json({ error: "Failed to create plan" }); }
+});
+
+// ── GET /api/compensation/periods ───────────────────────────
+// owner/admin: all | sales: own only | with ?userId= filter for managers
+app.get("/api/compensation/periods", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const role = await getCompRole(userId);
+    const filterUserId = (req.query.userId as string) || null;
+    let periods: any[];
+    if (canViewAllComp(role)) {
+      const q = filterUserId
+        ? db.select().from(payPeriods).where(and(eq(payPeriods.shopId, userId), eq(payPeriods.userId, filterUserId)))
+        : db.select().from(payPeriods).where(eq(payPeriods.shopId, userId));
+      periods = await q.orderBy(desc(payPeriods.periodStart));
+    } else {
+      // Sales sees only their own
+      periods = await db.select().from(payPeriods)
+        .where(and(eq(payPeriods.userId, userId)))
+        .orderBy(desc(payPeriods.periodStart));
+    }
+    res.json(periods);
+  } catch (e) { res.status(500).json({ error: "Failed to fetch periods" }); }
+});
+
+// ── POST /api/compensation/periods ──────────────────────────
+// owner/admin: create pay period, auto-calculate from line items
+app.post("/api/compensation/periods", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const role = await getCompRole(userId);
+    if (!canViewAllComp(role)) return res.status(403).json({ error: "Not authorized" });
+    const { targetUserId, periodStart, periodEnd, periodLabel, basePay,
+      commissionEarned, bonusEarned, drawAmount, drawBalance,
+      adjustments, adjustmentNotes, totalRevenue, jobCount, planId } = req.body;
+    const grossPay = (basePay||0) + (commissionEarned||0) + (bonusEarned||0) - (drawBalance||0) + (adjustments||0);
+    const [period] = await db.insert(payPeriods).values({
+      shopId: userId,
+      userId: targetUserId,
+      repName: req.body.repName || "Unknown",
+      planId: planId || null,
+      periodStart: new Date(periodStart),
+      periodEnd: new Date(periodEnd),
+      periodLabel: periodLabel || "Pay Period",
+      basePay: basePay || 0,
+      commissionEarned: commissionEarned || 0,
+      bonusEarned: bonusEarned || 0,
+      drawAmount: drawAmount || 0,
+      drawBalance: drawBalance || 0,
+      adjustments: adjustments || 0,
+      adjustmentNotes: adjustmentNotes || null,
+      grossPay,
+      totalRevenue: totalRevenue || 0,
+      jobCount: jobCount || 0,
+      status: "pending",
+    }).returning();
+    res.json(period);
+  } catch (e) { res.status(500).json({ error: "Failed to create period" }); }
+});
+
+// ── PATCH /api/compensation/periods/:id ─────────────────────
+// Rep: approve or dispute | Owner/admin: resolve dispute, mark paid
+app.patch("/api/compensation/periods/:id", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const role = await getCompRole(userId);
+    const { id } = req.params;
+    const { action, disputeNote, disputeResolution, adjustments, adjustmentNotes } = req.body;
+
+    // Verify this period belongs to this user or they have access
+    const [period] = await db.select().from(payPeriods).where(eq(payPeriods.id, id)).limit(1);
+    if (!period) return res.status(404).json({ error: "Period not found" });
+    const isOwn = period.userId === userId;
+    const isAdmin = canViewAllComp(role);
+    if (!isOwn && !isAdmin) return res.status(403).json({ error: "Not authorized" });
+
+    let update: any = { updatedAt: new Date() };
+
+    if (action === "approve" && isOwn) {
+      update.status = "approved";
+      update.repApprovedAt = new Date();
+    } else if (action === "dispute" && isOwn) {
+      update.status = "disputed";
+      update.repDisputedAt = new Date();
+      update.disputeNote = disputeNote || "Disputed by rep";
+    } else if (action === "resolve" && isAdmin) {
+      update.status = "approved";
+      update.disputeResolution = disputeResolution || "Resolved by management";
+      update.resolvedAt = new Date();
+      update.resolvedBy = userId;
+      if (adjustments !== undefined) {
+        update.adjustments = adjustments;
+        update.adjustmentNotes = adjustmentNotes || null;
+        update.grossPay = period.basePay + period.commissionEarned + period.bonusEarned
+          - period.drawBalance + (adjustments || 0);
+      }
+    } else if (action === "paid" && isAdmin) {
+      update.status = "paid";
+      update.paidAt = new Date();
+    }
+
+    const [updated] = await db.update(payPeriods).set(update)
+      .where(eq(payPeriods.id, id)).returning();
+    res.json(updated);
+  } catch (e) { res.status(500).json({ error: "Failed to update period" }); }
+});
+
+// ── GET /api/compensation/lineitems ─────────────────────────
+app.get("/api/compensation/lineitems", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const role = await getCompRole(userId);
+    const { periodId, repUserId } = req.query as any;
+    let items: any[];
+    if (canViewAllComp(role)) {
+      const conds: any[] = [];
+      if (periodId) conds.push(eq(compLineItems.payPeriodId, periodId));
+      if (repUserId) conds.push(eq(compLineItems.userId, repUserId));
+      items = conds.length
+        ? await db.select().from(compLineItems).where(and(...conds)).orderBy(desc(compLineItems.createdAt))
+        : await db.select().from(compLineItems).where(eq(compLineItems.shopId, userId)).orderBy(desc(compLineItems.createdAt));
+    } else {
+      // Sales sees only their own line items
+      const conds: any[] = [eq(compLineItems.userId, userId)];
+      if (periodId) conds.push(eq(compLineItems.payPeriodId, periodId));
+      items = await db.select().from(compLineItems).where(and(...conds)).orderBy(desc(compLineItems.createdAt));
+    }
+    res.json(items);
+  } catch (e) { res.status(500).json({ error: "Failed to fetch line items" }); }
+});
+
+// ── POST /api/compensation/lineitems ────────────────────────
+app.post("/api/compensation/lineitems", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const role = await getCompRole(userId);
+    if (!canViewAllComp(role)) return res.status(403).json({ error: "Not authorized" });
+    const item = { ...req.body, shopId: userId, createdAt: new Date() };
+    const [created] = await db.insert(compLineItems).values(item).returning();
+    res.json(created);
+  } catch (e) { res.status(500).json({ error: "Failed to create line item" }); }
+});
+
+// ── GET /api/compensation/summary ───────────────────────────
+// YTD summary per rep — owner sees all, sales sees own
+app.get("/api/compensation/summary", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const role = await getCompRole(userId);
+    const year = new Date().getFullYear();
+    let periods: any[];
+    if (canViewAllComp(role)) {
+      periods = await db.select().from(payPeriods)
+        .where(eq(payPeriods.shopId, userId))
+        .orderBy(desc(payPeriods.periodStart));
+    } else {
+      periods = await db.select().from(payPeriods)
+        .where(eq(payPeriods.userId, userId))
+        .orderBy(desc(payPeriods.periodStart));
+    }
+    // Group by rep
+    const byRep: Record<string, any> = {};
+    periods.forEach(p => {
+      if (!byRep[p.userId]) byRep[p.userId] = {
+        userId: p.userId, repName: p.repName,
+        ytdGross: 0, ytdCommission: 0, ytdBase: 0, ytdBonus: 0,
+        periods: 0, pendingPeriods: 0, disputedPeriods: 0
+      };
+      const yr = new Date(p.periodStart).getFullYear();
+      if (yr === year) {
+        byRep[p.userId].ytdGross += p.grossPay || 0;
+        byRep[p.userId].ytdCommission += p.commissionEarned || 0;
+        byRep[p.userId].ytdBase += p.basePay || 0;
+        byRep[p.userId].ytdBonus += p.bonusEarned || 0;
+      }
+      byRep[p.userId].periods++;
+      if (p.status === "pending") byRep[p.userId].pendingPeriods++;
+      if (p.status === "disputed") byRep[p.userId].disputedPeriods++;
+    });
+    res.json(Object.values(byRep));
+  } catch (e) { res.status(500).json({ error: "Failed to fetch summary" }); }
+});
+
 app.get("*", (_req: any, res: any) => {
     res.sendFile(join(distPath, "index.html"));
   });
