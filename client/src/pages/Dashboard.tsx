@@ -107,6 +107,46 @@ export default function Dashboard() {
     impact: Math.round(w.totalImpact || 0),
   })) || [];
 
+
+  // ── SAIRN Bridge sync ──────────────────────────────────────
+  const pushToSAIRNBridge = async (summary: any, user: any) => {
+    if (!user?.id) return;
+    try {
+      const [jobsRes, teamRes] = await Promise.all([
+        fetch("/api/jobs", { credentials: "include" }).then(r => r.json()),
+        fetch("/api/team", { credentials: "include" }).then(r => r.json()),
+      ]);
+      const jobs = Array.isArray(jobsRes) ? jobsRes : [];
+      const employees = Array.isArray(teamRes) ? teamRes : [];
+      await fetch("https://sairn.vercel.app/api/bridge/push", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          shopId: user.id,
+          jobs: jobs.map((j: any) => ({
+            id: j.id, jobNumber: j.jobNumber, jobName: j.jobName,
+            customerName: j.customerName, stage: j.stage,
+            stoneType: j.stoneType, totalSqft: j.totalSqft,
+            estimatedRevenue: j.estimatedRevenue, actualRevenue: j.actualRevenue,
+            materialCost: j.materialCost, actualTime: j.actualTime,
+            installDate: j.installDate, completionDate: j.completionDate,
+            salesRep: j.salesRepId,
+          })),
+          employees: employees.map((e: any) => ({
+            id: e.id, name: e.name, role: e.role, email: e.email
+          })),
+          financialSummary: {
+            shopName: user.shopName,
+            monthlyRevenue: summary?.totalRevenue,
+            activeJobs: summary?.activeJobs,
+          }
+        })
+      });
+    } catch (e) {
+      console.log("Bridge sync failed (non-critical):", e);
+    }
+  };
+
   return (
     <div className="p-8">
       {(staleJobs as any[]).length > 0 && (
@@ -247,6 +287,89 @@ export default function Dashboard() {
               {analysis?.analysis || "No issues logged this week — start tracking to unlock AI-powered insights about your shop's quality patterns and cost drivers."}
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* ── SAIRN SUITE LAUNCHER ── */}
+      <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-white font-bold text-sm tracking-wide">SAIRN Suite</h3>
+            <p className="text-zinc-500 text-xs mt-0.5">Your full shop intelligence system</p>
+          </div>
+          <button
+            onClick={() => pushToSAIRNBridge(summary, user)}
+            className="text-xs bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 px-3 py-1.5 rounded-lg font-medium transition-colors"
+          >
+            ⚡ Sync All Apps
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <a
+            href="https://sairn.vercel.app/sairnaccounting.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col items-center gap-2 p-4 rounded-xl bg-zinc-800/60 border border-zinc-700 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all group"
+          >
+            <span className="text-2xl">💰</span>
+            <div className="text-center">
+              <div className="text-white text-xs font-bold group-hover:text-emerald-400 transition-colors">SAIRNacc</div>
+              <div className="text-zinc-500 text-xs mt-0.5">Books & Finance</div>
+            </div>
+            {summary?.totalRevenue && (
+              <div className="text-emerald-400 text-xs font-mono font-bold">
+                ${Math.round(summary.totalRevenue / 1000)}K rev
+              </div>
+            )}
+          </a>
+          <a
+            href="https://sairn.vercel.app/hr.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col items-center gap-2 p-4 rounded-xl bg-zinc-800/60 border border-zinc-700 hover:border-blue-500/40 hover:bg-blue-500/5 transition-all group"
+          >
+            <span className="text-2xl">👥</span>
+            <div className="text-center">
+              <div className="text-white text-xs font-bold group-hover:text-blue-400 transition-colors">SAIRNhr</div>
+              <div className="text-zinc-500 text-xs mt-0.5">People & Payroll</div>
+            </div>
+            {summary?.activeJobs && (
+              <div className="text-blue-400 text-xs font-mono font-bold">
+                {summary.activeJobs} active jobs
+              </div>
+            )}
+          </a>
+          <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-zinc-800/60 border border-zinc-700">
+            <span className="text-2xl opacity-40">🏪</span>
+            <div className="text-center">
+              <div className="text-zinc-600 text-xs font-bold">StoneDesk</div>
+              <div className="text-zinc-600 text-xs mt-0.5">You are here</div>
+            </div>
+            <div className="text-amber-400 text-xs font-mono font-bold">Active</div>
+          </div>
+        </div>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          <a
+            href="/api/bridge/csv?shop={shopId}&type=gl"
+            download="stonedesk_gl_import.csv"
+            className="text-center text-xs text-zinc-500 hover:text-emerald-400 py-2 rounded-lg hover:bg-zinc-800 transition-all"
+          >
+            ↓ Export GL → SAIRNacc
+          </a>
+          <a
+            href="/api/bridge/csv?shop={shopId}&type=payroll"
+            download="stonedesk_payroll.csv"
+            className="text-center text-xs text-zinc-500 hover:text-blue-400 py-2 rounded-lg hover:bg-zinc-800 transition-all"
+          >
+            ↓ Export Payroll → SAIRNhr
+          </a>
+          <a
+            href="/api/bridge/csv?shop={shopId}&type=jobs"
+            download="stonedesk_jobs.csv"
+            className="text-center text-xs text-zinc-500 hover:text-amber-400 py-2 rounded-lg hover:bg-zinc-800 transition-all"
+          >
+            ↓ Export All Jobs
+          </a>
         </div>
       </div>
     </div>
