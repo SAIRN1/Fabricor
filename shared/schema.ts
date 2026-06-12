@@ -7,7 +7,7 @@ export const rootCauseEnum = pgEnum("root_cause", [
   "templating", "material_handling", "cutting", "fabrication",
   "installation", "sales_expectations", "material_defect"
 ]);
-export const userRoleEnum = pgEnum("user_role", ["admin", "manager", "viewer"]);
+export const userRoleEnum = pgEnum("user_role", ["owner", "admin", "manager", "sales", "installer", "viewer"]);
 export const planEnum = pgEnum("plan", ["starter", "professional", "enterprise"]);
 
 export const users = pgTable("users", {
@@ -379,3 +379,78 @@ export const jobPhotos = pgTable("job_photos", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+
+export const compensationPlans = pgTable("compensation_plans", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  shopId: uuid("shop_id").notNull(),           // multi-tenant
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  repName: text("rep_name").notNull(),
+  compType: text("comp_type").notNull().default("commission"), // salary | commission | hybrid
+  baseSalary: real("base_salary").default(0),  // annual if salary/hybrid
+  commissionRate: real("commission_rate").default(0), // % of revenue, default tier
+  // Tiered commission: JSON array [{threshold, rate}] e.g. [{threshold:0,rate:0.03},{threshold:50000,rate:0.04}]
+  commissionTiers: text("commission_tiers"),
+  // Bonus structure: JSON {quota:number, bonusAmount:number, bonusPct:number}
+  bonusStructure: text("bonus_structure"),
+  drawAmount: real("draw_amount").default(0),  // monthly draw against commission
+  effectiveDate: timestamp("effective_date").defaultNow(),
+  endDate: timestamp("end_date"),              // null = currently active
+  notes: text("notes"),
+  createdBy: uuid("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const payPeriods = pgTable("pay_periods", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  shopId: uuid("shop_id").notNull(),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  repName: text("rep_name").notNull(),
+  planId: uuid("plan_id").references(() => compensationPlans.id),
+  periodStart: timestamp("period_start").notNull(),
+  periodEnd: timestamp("period_end").notNull(),
+  periodLabel: text("period_label").notNull(),  // e.g. "June 1–15, 2026"
+  basePay: real("base_pay").default(0),
+  commissionEarned: real("commission_earned").default(0),
+  bonusEarned: real("bonus_earned").default(0),
+  drawAmount: real("draw_amount").default(0),
+  drawBalance: real("draw_balance").default(0), // running draw owed
+  adjustments: real("adjustments").default(0),  // manual +/- with notes
+  adjustmentNotes: text("adjustment_notes"),
+  grossPay: real("gross_pay").default(0),        // base + commission + bonus - draw balance
+  totalRevenue: real("total_revenue").default(0),// revenue credited this period
+  jobCount: integer("job_count").default(0),
+  status: text("status").notNull().default("pending"), // pending | approved | disputed | paid
+  repApprovedAt: timestamp("rep_approved_at"),
+  repDisputedAt: timestamp("rep_disputed_at"),
+  disputeNote: text("dispute_note"),
+  disputeResolution: text("dispute_resolution"),
+  resolvedAt: timestamp("resolved_at"),
+  resolvedBy: uuid("resolved_by").references(() => users.id),
+  paidAt: timestamp("paid_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const compLineItems = pgTable("comp_line_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  shopId: uuid("shop_id").notNull(),
+  payPeriodId: uuid("pay_period_id").references(() => payPeriods.id),
+  userId: uuid("user_id").references(() => users.id).notNull(),
+  jobId: uuid("job_id").references(() => jobs.id),
+  jobNumber: text("job_number"),
+  jobName: text("job_name"),
+  customerName: text("customer_name"),
+  completionDate: timestamp("completion_date"),
+  revenueAmount: real("revenue_amount").notNull().default(0),
+  commissionRate: real("commission_rate").notNull().default(0),
+  commissionAmount: real("commission_amount").notNull().default(0),
+  itemType: text("item_type").notNull().default("commission"), // commission | bonus | adjustment | draw
+  notes: text("notes"),
+  includedInPayPeriod: boolean("included_in_pay_period").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCompensationPlanSchema = createInsertSchema(compensationPlans);
+export const insertPayPeriodSchema = createInsertSchema(payPeriods);
+export const insertCompLineItemSchema = createInsertSchema(compLineItems);
