@@ -27,9 +27,9 @@ const COMPARISON = [
 ];
 
 const PLANS = [
-  { name: "Starter", price: 199, color: "border-gray-200", btnColor: "bg-gray-900 hover:bg-gray-700 text-white", features: ["Dashboard & Health Score", "Issue Tracker", "Customer Database", "Job Pipeline", "Schedule & Route Planning", "Up to 2 users"] },
-  { name: "Professional", price: 299, color: "border-amber-400", btnColor: "bg-amber-500 hover:bg-amber-400 text-black", popular: true, features: ["Everything in Starter", "AI Email Generator", "Price Estimator", "2D Layout Tool", "Excel Import", "Digital Signatures", "Up to 5 users"] },
-  { name: "Enterprise", price: 499, color: "border-emerald-400", btnColor: "bg-emerald-500 hover:bg-emerald-400 text-white", features: ["Everything in Professional", "Unlimited users", "White label option", "Priority support", "Weekly AI reports", "Custom integrations"] },
+  { name: "Starter", price: 249, color: "border-gray-200", btnColor: "bg-gray-900 hover:bg-gray-700 text-white", features: ["Dashboard & Health Score", "Issue Tracker", "Customer Database", "Job Pipeline", "Schedule & Route Planning", "Up to 2 users"] },
+  { name: "Professional", price: 399, color: "border-amber-400", btnColor: "bg-amber-500 hover:bg-amber-400 text-black", popular: true, features: ["Everything in Starter", "AI Email Generator", "Price Estimator", "2D Layout Tool", "Excel Import", "Digital Signatures", "Up to 5 users"] },
+  { name: "Enterprise", price: 699, color: "border-emerald-400", btnColor: "bg-emerald-500 hover:bg-emerald-400 text-white", features: ["Everything in Professional", "Unlimited users", "White label option", "Priority support", "Weekly AI reports", "Custom integrations"] },
 ];
 
 export default function Landing() {
