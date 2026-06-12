@@ -6,8 +6,8 @@ const PLANS = [
   {
     key: "starter",
     name: "Starter",
-    price: 199,
-    priceId: "price_starter",
+    price: 249,
+    priceId: "price_1TgEAbA6PfEDlvnaQBSzvNW5",
     icon: Zap,
     color: "border-zinc-700",
     headerColor: "bg-zinc-800",
@@ -26,8 +26,8 @@ const PLANS = [
   {
     key: "professional",
     name: "Professional",
-    price: 299,
-    priceId: "price_professional",
+    price: 399,
+    priceId: "price_1TgEBVA6PfEDlvnaN4ZbVE8r",
     icon: Star,
     color: "border-amber-500",
     headerColor: "bg-amber-500/10",
@@ -47,8 +47,8 @@ const PLANS = [
   {
     key: "enterprise",
     name: "Enterprise",
-    price: 499,
-    priceId: "price_enterprise",
+    price: 699,
+    priceId: "price_1TgECGA6PfEDlvnaDzp5cyhG",
     icon: Building2,
     color: "border-emerald-500",
     headerColor: "bg-emerald-500/10",
