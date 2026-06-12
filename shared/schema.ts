@@ -18,6 +18,7 @@ export const users = pgTable("users", {
   role: userRoleEnum("role").notNull().default("viewer"),
   plan: planEnum("plan").notNull().default("starter"),
   shopName: text("shop_name"),
+  shopId: uuid("shop_id"),  // Multi-tenant: team members share owner's shopId
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
   createdAt: timestamp("created_at").defaultNow(),
