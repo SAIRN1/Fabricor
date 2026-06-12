@@ -34,6 +34,7 @@ import Marketplace from "./pages/Marketplace";
 import Inventory from "./pages/Inventory";
 import QuickBooks from "./pages/QuickBooks";
 import Billing from "./pages/Billing";
+import Compensation from "./pages/Compensation";
 import Landing from "./pages/Landing";
 import Import from "./pages/Import";
 import { Resources, Sales, PriceBook, Settings } from "./pages/OtherPages";
@@ -93,6 +94,7 @@ function AppContent() {
     { href: "/silica", icon: Shield, label: "Silica", desc: "Safety compliance" },
     { href: "/quote", icon: Sparkles, label: "AI Quote", desc: "Generate quotes with AI" },
     { href: "/team", icon: Users, label: "Team", desc: "Manage team members" },
+    { href: "/compensation", icon: DollarSign, label: "Compensation", desc: "Pay & commissions" },
     { href: "/leads", icon: TrendingUp, label: "Leads", desc: "Lead management" },
     { href: "/analytics", icon: BarChart2, label: "Analytics", desc: "Shop analytics" },
     { href: "/remnants", icon: Package, label: "Remnants", desc: "Remnant tracker" },
@@ -209,6 +211,7 @@ function AppContent() {
           <Route path="/silica" component={Silica} />
           <Route path="/quote" component={QuoteGenerator} />
           <Route path="/team" component={Team} />
+              <Route path="/compensation" component={Compensation} />
           <Route path="/leads" component={Leads} />
           <Route path="/analytics" component={Analytics} />
           <Route path="/remnants" component={Remnants} />
