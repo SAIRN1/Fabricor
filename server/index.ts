@@ -662,7 +662,43 @@ const distPath = join(__dirname2, "../dist/public");
 if (existsSync(distPath)) {
   const { default: serveStatic } = await import("serve-static");
   app.use(serveStatic(distPath));
-  app.get("*", (_req: any, res: any) => {
+  
+// ── SAIRN Bridge proxy routes ──────────────────────────────
+// Proxy CSV downloads from the bridge with the authenticated shop ID
+app.get("/api/bridge/csv", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const type = (req.query.type as string) || "jobs";
+    const bridgeUrl = `https://sairn.vercel.app/api/bridge/csv?shop=${userId}&type=${type}`;
+    const response = await fetch(bridgeUrl);
+    const csv = await response.text();
+    const filenames: Record<string, string> = {
+      jobs: "stonedesk_jobs.csv",
+      payroll: "stonedesk_payroll.csv",
+      gl: "stonedesk_gl_import.csv"
+    };
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", `attachment; filename="${filenames[type] || "export.csv"}"`);
+    res.send(csv);
+  } catch (e) {
+    res.status(500).json({ error: "Export failed" });
+  }
+});
+
+// Bridge context for SAIRNhr — returns shop context string
+app.get("/api/bridge/context", requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    const bridgeUrl = `https://sairn.vercel.app/api/bridge/context?shop=${userId}`;
+    const response = await fetch(bridgeUrl);
+    const data = await response.json();
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: "Bridge context unavailable" });
+  }
+});
+
+app.get("*", (_req: any, res: any) => {
     res.sendFile(join(distPath, "index.html"));
   });
 }
