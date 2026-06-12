@@ -31,9 +31,9 @@ const resend = new Resend(process.env.RESEND_API_KEY || "placeholder");
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", { apiVersion: "2026-05-27.dahlia" });
 
 const STRIPE_PRICES: Record<string, string> = {
-  starter: process.env.STRIPE_PRICE_STARTER || "price_starter",
-  professional: process.env.STRIPE_PRICE_PROFESSIONAL || "price_professional",
-  enterprise: process.env.STRIPE_PRICE_ENTERPRISE || "price_enterprise",
+  starter: process.env.STRIPE_PRICE_STARTER || "price_1TgEAbA6PfEDlvnaQBSzvNW5",
+  professional: process.env.STRIPE_PRICE_PROFESSIONAL || "price_1TgEBVA6PfEDlvnaN4ZbVE8r",
+  enterprise: process.env.STRIPE_PRICE_ENTERPRISE || "price_1TgECGA6PfEDlvnaDzp5cyhG",
 };
 
 app.use(cors({ origin: true, credentials: true }));
@@ -585,8 +585,8 @@ app.post("/api/billing/create-checkout", requireAuth, async (req, res) => {
     if (!user) return res.status(404).json({ error: "User not found" });
     const { plan } = req.body;
     const priceId = STRIPE_PRICES[plan];
-    if (!priceId || priceId.startsWith("price_s") || priceId.startsWith("price_p") || priceId.startsWith("price_e")) {
-      return res.status(400).json({ error: "Invalid plan configuration" });
+    if (!priceId || priceId.length < 20) {
+      return res.status(400).json({ error: "Invalid plan configuration — contact support" });
     }
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
