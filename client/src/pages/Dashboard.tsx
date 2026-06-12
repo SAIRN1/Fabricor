@@ -302,7 +302,10 @@ export default function Dashboard() {
             className="text-xs bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 px-3 py-1.5 rounded-lg font-medium transition-colors"
           >
             ⚡ Sync All Apps
-          </button>
+
+              <div className="flex gap-2 mt-2">
+                <a href="/checks" className="text-xs text-green-700 font-semibold px-3 py-2 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100">✍️ Check Register</a>
+              </div>          </button>
         </div>
         <div className="grid grid-cols-3 gap-3">
           <a
